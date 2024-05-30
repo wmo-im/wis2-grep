@@ -1,0 +1,12 @@
+broker: ${WIS2_GREP_GB}
+
+subscribe_topics:
+    - ${WIS2_GREP_GB_TOPIC}
+
+qos: 1
+
+verify_data: false
+
+validate_message: false
+
+hook: wis2_grep.hook.NotificationMessageHook
