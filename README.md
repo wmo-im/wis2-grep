@@ -76,7 +76,7 @@ The Docker setup uses Docker and Docker Compose to manage the following services
 - **wis2-grep-api**: API powered by [pygeoapi](https://pygeoapi.io)
 - **wis2-grep-management**: management service to publish notification messages published from a WIS2 Global Broker instance
   - the default Global Broker connection is to NOAA.  This can be modified in `wis2-grep.env` to point to a different Global Broker
-- ** wis2-grep-backend**: API search engine backend (default Elasticsearch)
+- **wis2-grep-backend**: API search engine backend (default Elasticsearch)
 
 See [`wis2-grep.env`](wis2-grep.env) for default environment variable settings.
 
