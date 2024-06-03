@@ -1,7 +1,8 @@
 broker: ${WIS2_GREP_GB}
 
 subscribe_topics:
-    - ${WIS2_GREP_GB_TOPIC}
+    - origin/a/wis2/#
+    - cache/a/wis2/#
 
 qos: 1
 

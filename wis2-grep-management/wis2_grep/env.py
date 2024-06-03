@@ -49,8 +49,7 @@ BACKEND_TYPE = os.environ.get('WIS2_GREP_BACKEND_TYPE')
 BACKEND_CONNECTION = os.environ.get('WIS2_GREP_BACKEND_CONNECTION')
 CENTRE_ID = os.environ.get('WIS2_GREP_CENTRE_ID')
 GB = os.environ.get('WIS2_GREP_GB')
-GB_TOPIC = os.environ.get('WIS2_GREP_GB_TOPIC')
 
 if None in [API_URL, API_URL_DOCKER, BACKEND_TYPE, BACKEND_CONNECTION,
-            CENTRE_ID, GB, GB_TOPIC]:
+            CENTRE_ID, GB]:
     raise EnvironmentError('Environment variables not set!')
