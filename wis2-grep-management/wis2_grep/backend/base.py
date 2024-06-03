@@ -50,10 +50,11 @@ class BaseBackend(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def save(self, record: dict) -> None:
+    def save(self, channel: str, record: dict) -> None:
         """
         Upsert a resource to a backend
 
+        :param channel: `str` of channel (`origin` or `cache`)
         :param payload: `dict` of resource
 
         :returns: `None`
@@ -62,10 +63,11 @@ class BaseBackend(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def exists(self, identifier: str) -> bool:
+    def exists(self, channel: str, identifier: str) -> bool:
         """
         Querying whether a record exists in a backend
 
+        :param channel: `str` of channel (`origin` or `cache`)
         :param identifier: `str` of record identifier
 
         :returns: `bool` of whether record exists in backend
