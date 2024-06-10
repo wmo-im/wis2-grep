@@ -62,7 +62,7 @@ services:
       wis2-grep-backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://wis2-grep-backend:9200/wis2-notification-messages-origin", "&&", "curl", "-f", "http://wis2-grep-backend:9200/wis2-notification-messages-cache" ]
+      test: ["CMD", "curl", "-f", "http://wis2-grep-backend:9200/wis2-notification-messages"]
       interval: 5s
       retries: 3
     volumes:

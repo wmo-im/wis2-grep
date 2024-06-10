@@ -42,7 +42,6 @@ class Loader:
         :returns: `wis2_grep.loader.Loader`
         """
 
-        self.channel = None
         self.backend = BACKENDS[BACKEND_TYPE](
                     {'connection': BACKEND_CONNECTION})
 
@@ -55,11 +54,6 @@ class Loader:
 
         :returns: `None`
         """
-
-        if topic.startswith('origin'):
-            self.channel = 'origin'
-        elif topic.startswith('cache'):
-            self.channel = 'cache'
 
         if isinstance(message, dict):
             LOGGER.debug('Notification message is already a dict')
@@ -89,7 +83,7 @@ class Loader:
         """
 
         LOGGER.info(f'Saving to {BACKEND_TYPE} ({BACKEND_CONNECTION})')
-        self.backend.save(self.channel, self.message)
+        self.backend.save(self.message)
 
     def __repr__(self):
         return '<Loader>'

@@ -107,6 +107,7 @@ class ElasticsearchBackend(BaseBackend):
         }
 
         self.url_parsed = urlparse(self.defs.get('connection'))
+        self.index_name = self.url_parsed.path.lstrip('/')
 
         url2 = f'{self.url_parsed.scheme}://{self.url_parsed.netloc}'
 
@@ -123,9 +124,11 @@ class ElasticsearchBackend(BaseBackend):
         if self.url_parsed.path.count('/') > 1:
             LOGGER.debug('ES URL has a basepath')
             basepath = self.url_parsed.path.split('/')[1]
+            self.index_name = self.url_parsed.path.split('/')[-1]
             url2 = f'{url2}/{basepath}/'
 
         LOGGER.debug(f'ES URL: {url2}')
+        LOGGER.debug(f'ES index: {self.index_name}')
 
         settings = {
             'hosts': [url2],
@@ -143,29 +146,22 @@ class ElasticsearchBackend(BaseBackend):
 
     def setup(self) -> None:
         self.teardown()
-        LOGGER.debug('Creating indexes')
-
-        for channel in ['origin', 'cache']:
-            index_name = f'wis2-notification-messages-{channel}'
-            self.es.indices.create(index=index_name, body=self.ES_SETTINGS)
+        LOGGER.debug(f'Creating index {self.index_name}')
+        self.es.indices.create(index=self.index_name, body=self.ES_SETTINGS)
 
     def teardown(self) -> None:
-        for channel in ['origin', 'cache']:
-            index_name = f'wis2-notification-messages-{channel}'
-            if self.es.indices.exists(index=index_name):
-                LOGGER.debug(f'Deleting index {index_name}')
-                self.es.indices.delete(index=index_name)
+        if self.es.indices.exists(index=self.index_name):
+            LOGGER.debug(f'Deleting index {self.index_name}')
+            self.es.indices.delete(index=self.index_name)
 
-    def save(self, channel: str, record: dict) -> None:
+    def save(self, record: dict) -> None:
         LOGGER.debug(f"Indexing record {record['id']}")
-        index_name = f'wis2-notification-messages-{channel}'
-        self.es.index(index=index_name, id=record['id'], body=record)
+        self.es.index(index=self.index_name, id=record['id'], body=record)
 
-    def exists(self, channel: str, identifier: str) -> bool:
+    def exists(self, identifier: str) -> bool:
         LOGGER.debug(f'Querying Replay API for id {identifier}')
-        index_name = f'wis2-notification-messages-{channel}'
         try:
-            _ = self.es.get(index=index_name, id=identifier)
+            _ = self.es.get(index=self.index_name, id=identifier)
             return True
         except NotFoundError:
             return False

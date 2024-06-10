@@ -36,10 +36,10 @@ class OGCAPIFeaturesBackend(BaseBackend):
         super().__init__(defs)
 
         self.conn = Features(env.API_URL)
+        self.collection = 'notification-messsages'
 
-    def save(self, channel: str):
+    def save(self):
 
-        collection = f'wis2-notification-messages-{channel}'
         ttype = 'create'
 
         try:
@@ -52,16 +52,15 @@ class OGCAPIFeaturesBackend(BaseBackend):
 
         if ttype == 'create':
             LOGGER.debug('Adding new notification to collection')
-            _ = self.conn.get_collection_create(collection, payload)
+            _ = self.conn.get_collection_create(self.collection, payload)
         elif ttype == 'update':
             LOGGER.debug('Updating existing notification in collection')
-            _ = self.conn.get_collection_update(collection, payload)
+            _ = self.conn.get_collection_update(self.collection, payload)
 
-    def exists(self, channel: str, identifier: str) -> bool:
-        collection = f'wis2-notification-messages-{channel}'
+    def exists(self, identifier: str) -> bool:
         LOGGER.debug(f'Querying Replay API for id {identifier}')
         try:
-            _ = self.conn.collection_item(collection, identifier)
+            _ = self.conn.collection_item(self.collection, identifier)
             return True
         except RuntimeError:
             return False
