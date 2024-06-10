@@ -65,25 +65,25 @@ resources:
               rel: items
               title: Notifications from Météo-France, Global Broker Service
               href: mqtts://everyone:everyone@globalbroker.meteo.fr:8883
-              channel: 'origin/a/wis2/#'
+              channel: '+/a/wis2/#'
               length: -1
             - type: application/geo+json
               rel: items
               title: Notifications from China Meteorological Agency, Global Broker Service
               href: mqtts://everyone:everyone@gb.wis.cma.cn:8883
-              channel: 'origin/a/wis2/#'
+              channel: '+/a/wis2/#'
               length: -1
             - type: application/geo+json
               rel: items
               title: Notifications from National Oceanic and Atmospheric Administration, National Weather Service, Global Broker Service
               href: mqtts://everyone:everyone@wis2globalbroker.nws.noaa.gov:8883
-              channel: 'origin/a/wis2/#'
+              channel: '+/a/wis2/#'
               length: -1
             - type: application/geo+json
               rel: items
               title: Notifications from Instituto Nacional de Meteorologia (Brazil), Global Broker Service
               href: mqtts://everyone:everyone@globalbroker.inmet.gov.br:8883
-              channel: 'origin/a/wis2/#'
+              channel: '+/a/wis2/#'
               length: -1
             - type: text/html
               rel: canonical
@@ -99,3 +99,8 @@ resources:
               data: ${WIS2_GREP_BACKEND_CONNECTION}
               id_field: id
               time_field: pubtime
+
+    wis2-grep-subscriber:
+        type: process
+        processor:
+            name: pygeoapi.process.wis2_grep.WIS2GrepSubscriberProcessor
