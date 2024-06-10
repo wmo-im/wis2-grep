@@ -46,7 +46,7 @@ metadata:
         country: Country
         phone: +xx-xxx-xxx-xxxx
         fax: +xx-xxx-xxx-xxxx
-        email: pygeoapi@lists.osgeo.org
+        email: you@example.org
         url: https://github.com/wmo-im/wis2-grep
         hours: Mo-Fr 08:00-17:00
         instructions: During hours of service. Off on weekends.

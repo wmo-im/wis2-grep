@@ -93,9 +93,11 @@ make force-build
 
 # start all containers
 make up
+# API is up at http://localhost
 
 # start all containers in dev mode
 make dev
+# API is up at http://localhost
 
 # view all container logs in realtime
 make logs
