@@ -8,8 +8,8 @@ wis2-grep is a Reference Implementation of a WIS2 Global Replay Service.
 
 ## Workflow
 
-- connects to a WIS2 Global Broker, subscribed to the following topic:
-  - `origin/a/wis2/#`
+- connects to a WIS2 Global Broker, subscribed to the following topics:
+  - `origin/a/wis2/#` and `cache/a/wis2/#`
 - on notification messages
   - publish to a WIS2 Global Replay Service (OGC API - Features) using one of the supported transaction backends:
     - [OGC API - Features - Part 4: Create, Replace, Update and Delete](https://docs.ogc.org/DRAFTS/20-002.html)
