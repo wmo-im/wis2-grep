@@ -24,6 +24,8 @@
 
 echo "START /entrypoint.sh"
 
+printenv | grep -v "no_proxy" >> /etc/environment
+
 echo "Caching WNM schema"
 pywis-pubsub schema sync
 
