@@ -69,7 +69,28 @@ wis2-grep register /path/to/wnm-file.json
 
 # loading notification messages manually (directory of .json files)
 wis2-grep load /path/to/dir/of/wnm-files
+
+# clean messages from API index
+wis2-grep clean --hours 24
 ```
+
+## API queries
+
+By bounding box (Canada):
+  http://localhost/collections/wis2-notification-messages/items?bbox=-142,42,-5,84
+
+By publication time (from/to):
+  http://localhost/collections/wis2-notification-messages/items?datetime=2024-07-24T11:11:11Z/2024-07-25T12:34:21Z
+
+By publication time (from):
+  http://localhost/collections/wis2-notification-messages/items?datetime=2024-07-24T11:11:11Z/..
+
+By publication time (to):
+  http://localhost/collections/wis2-notification-messages/items?datetime=../2024-07-24T11:11:11Z
+
+By message identifier
+  http://localhost/collections/wis2-notification-messages/items/WNM_ID
+
 
 ### Docker
 

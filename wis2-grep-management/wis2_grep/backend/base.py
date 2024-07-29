@@ -50,11 +50,11 @@ class BaseBackend(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def save(self, record: dict) -> None:
+    def save(self, message: dict) -> None:
         """
         Upsert a resource to a backend
 
-        :param payload: `dict` of resource
+        :param payload: `dict` of message
 
         :returns: `None`
         """
@@ -62,13 +62,25 @@ class BaseBackend(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def exists(self, identifier: str) -> bool:
+    def message_exists(self, identifier: str) -> bool:
         """
-        Querying whether a record exists in a backend
+        Query whether a message exists in a backend
 
-        :param identifier: `str` of record identifier
+        :param identifier: `str` of message identifier
 
-        :returns: `bool` of whether record exists in backend
+        :returns: `bool` of whether message exists in backend
+        """
+
+        raise NotImplementedError()
+
+    @abstractmethod
+    def clean(self, hours: int) -> None:
+        """
+        Clean messages older than n hours from backend
+
+        :param hours: `int` of hours of message max age
+
+        :returns: `None`
         """
 
         raise NotImplementedError()

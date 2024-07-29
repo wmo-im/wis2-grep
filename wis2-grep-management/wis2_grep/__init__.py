@@ -21,7 +21,7 @@
 
 import click
 
-from wis2_grep.loader import load, setup, teardown
+from wis2_grep.loader import clean, load, setup, teardown
 
 __version__ = '0.1.dev0'
 
@@ -34,6 +34,7 @@ def cli():
     pass
 
 
+cli.add_command(clean)
 cli.add_command(setup)
 cli.add_command(teardown)
 cli.add_command(load)
