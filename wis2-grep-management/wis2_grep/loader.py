@@ -149,7 +149,7 @@ def load(ctx, path, verbosity='NOTSET'):
 @click.command()
 @click.pass_context
 @click.option('--hours', type=int, default=MESSAGE_RETENTION_HOURS,
-              help='Number of hours of data to keep')
+              help='Number of hours of messages to keep')
 @cli_options.OPTION_VERBOSITY
 def clean(ctx, hours, verbosity):
     """Clean messages on API indexes"""
