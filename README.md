@@ -78,6 +78,9 @@ wis2-grep clean --hours 24
 
 ```bash
 
+# by topic
+curl "http://localhost/collections/wis2-notification-messages/items?q=%22cache/b/wis2%22"
+
 # by bounding box (Canada):
 curl "http://localhost/collections/wis2-notification-messages/items?bbox=-142,42,-5,84"
 
@@ -92,6 +95,18 @@ curl "http://localhost/collections/wis2-notification-messages/items?datetime=../
 
 # by message identifier
 curl "http://localhost/collections/wis2-notification-messages/items/<WNM_ID>"
+
+# sort results by oldest messages (pubtime)
+curl "http://localhost/collections/wis2-notification-messages/items?sortby=pubtime"
+
+# sort results by latest messages (pubtime)
+curl "http://localhost/collections/wis2-notification-messages/items?sortby=-pubtime"
+
+# return as GeoJSON
+curl "http://localhost/collections/wis2-notification-messages/items?f=json"
+
+# return as HTML
+curl "http://localhost/collections/wis2-notification-messages/items?f=html"
 ```
 
 ### Docker
