@@ -76,21 +76,23 @@ wis2-grep clean --hours 24
 
 ## API queries
 
-By bounding box (Canada):
-  http://localhost/collections/wis2-notification-messages/items?bbox=-142,42,-5,84
+```bash
 
-By publication time (from/to):
-  http://localhost/collections/wis2-notification-messages/items?datetime=2024-07-24T11:11:11Z/2024-07-25T12:34:21Z
+# by bounding box (Canada):
+curl "http://localhost/collections/wis2-notification-messages/items?bbox=-142,42,-5,84"
 
-By publication time (from):
-  http://localhost/collections/wis2-notification-messages/items?datetime=2024-07-24T11:11:11Z/..
+# by publication time (from/to):
+curl "http://localhost/collections/wis2-notification-messages/items?datetime=2024-07-24T11:11:11Z/2024-07-25T12:34:21Z"
 
-By publication time (to):
-  http://localhost/collections/wis2-notification-messages/items?datetime=../2024-07-24T11:11:11Z
+# by publication time (from):
+curl "http://localhost/collections/wis2-notification-messages/items?datetime=2024-07-24T11:11:11Z/.."
 
-By message identifier
-  http://localhost/collections/wis2-notification-messages/items/WNM_ID
+# by publication time (to):
+curl "http://localhost/collections/wis2-notification-messages/items?datetime=../2024-07-24T11:11:11Z"
 
+# by message identifier
+curl "http://localhost/collections/wis2-notification-messages/items/<WNM_ID>"
+```
 
 ### Docker
 
