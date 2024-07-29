@@ -149,7 +149,9 @@ class ElasticsearchBackend(BaseBackend):
         }
 
         LOGGER.debug(f'deleting documents older than {hours} hours ({before})')  # noqa
-        self.es.delete_by_query(index=self.index_name, **query)
+        result = self.es.delete_by_query(index=self.index_name, **query)
+        LOGGER.debug(result)
+        self.es.indices.flush(index=self.index_name)
 
         return
 
