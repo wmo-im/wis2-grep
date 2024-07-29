@@ -29,7 +29,8 @@ import click
 from pywis_pubsub import cli_options
 
 from wis2_grep.backend import BACKENDS
-from wis2_grep.env import BACKEND_TYPE, BACKEND_CONNECTION
+from wis2_grep.env import (BACKEND_TYPE, BACKEND_CONNECTION,
+                           MESSAGE_RETENTION_HOURS)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -143,3 +144,23 @@ def load(ctx, path, verbosity='NOTSET'):
         with w2p.open() as fh:
             r = Loader()
             r.load(fh.read())
+
+
+@click.command()
+@click.pass_context
+@click.option('--hours', type=int, default=MESSAGE_RETENTION_HOURS,
+              help='Number of hours of messages to keep')
+@cli_options.OPTION_VERBOSITY
+def clean(ctx, hours, verbosity):
+    """Clean messages on API indexes"""
+
+    hours_ = hours or MESSAGE_RETENTION_HOURS
+
+    if hours_ is None or hours_ < 0:
+        click.echo('No data retention set. Skipping')
+    else:
+        backend = BACKENDS[BACKEND_TYPE]({'connection': BACKEND_CONNECTION})
+        LOGGER.debug(f'Backend: {backend}')
+        backend.clean(hours_)
+
+        click.echo(f'Deleting messages > {hours_} hour(s) old from {backend}')

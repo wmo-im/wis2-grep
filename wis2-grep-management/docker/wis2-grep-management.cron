@@ -1,1 +1,1 @@
-19 * * * * su -c "wis2-grep clean" > /proc/1/fd/1 2>/proc/1/fd/2
+19 * * * * su -c "wis2-grep clean --hours=$WIS2_GREP_MESSAGE_RETENTION_HOURS" > /proc/1/fd/1 2>/proc/1/fd/2

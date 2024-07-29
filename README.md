@@ -69,6 +69,44 @@ wis2-grep register /path/to/wnm-file.json
 
 # loading notification messages manually (directory of .json files)
 wis2-grep load /path/to/dir/of/wnm-files
+
+# clean messages from API index
+wis2-grep clean --hours 24
+```
+
+## API queries
+
+```bash
+
+# by topic
+curl "http://localhost/collections/wis2-notification-messages/items?q=%22cache/b/wis2%22"
+
+# by bounding box (Canada):
+curl "http://localhost/collections/wis2-notification-messages/items?bbox=-142,42,-5,84"
+
+# by publication time (from/to):
+curl "http://localhost/collections/wis2-notification-messages/items?datetime=2024-07-24T11:11:11Z/2024-07-25T12:34:21Z"
+
+# by publication time (from):
+curl "http://localhost/collections/wis2-notification-messages/items?datetime=2024-07-24T11:11:11Z/.."
+
+# by publication time (to):
+curl "http://localhost/collections/wis2-notification-messages/items?datetime=../2024-07-24T11:11:11Z"
+
+# by message identifier
+curl "http://localhost/collections/wis2-notification-messages/items/<WNM_ID>"
+
+# sort results by oldest messages (pubtime)
+curl "http://localhost/collections/wis2-notification-messages/items?sortby=pubtime"
+
+# sort results by latest messages (pubtime)
+curl "http://localhost/collections/wis2-notification-messages/items?sortby=-pubtime"
+
+# return as GeoJSON
+curl "http://localhost/collections/wis2-notification-messages/items?f=json"
+
+# return as HTML
+curl "http://localhost/collections/wis2-notification-messages/items?f=html"
 ```
 
 ### Docker

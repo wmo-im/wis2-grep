@@ -19,6 +19,7 @@
 #
 ###############################################################################
 
+from datetime import datetime, timedelta
 import logging
 from urllib.parse import urlparse
 
@@ -63,42 +64,6 @@ class ElasticsearchBackend(BaseBackend):
                                 'null_value': '1850',
                                 'format': 'year||year_month||year_month_day||date_time||t_time||t_time_no_millis',  # noqa
                                 'ignore_malformed': True
-                            }
-                        }
-                    },
-                    'properties': {
-                        'properties': {
-                            'type': {
-                                'type': 'text',
-                                'fields': {
-                                    'raw': {
-                                        'type': 'keyword'
-                                    }
-                                }
-                            },
-                            'title': {
-                                'type': 'text',
-                                'fields': {
-                                    'raw': {
-                                        'type': 'keyword'
-                                    }
-                                }
-                            },
-                            'description': {
-                                'type': 'text',
-                                'fields': {
-                                    'raw': {
-                                        'type': 'keyword'
-                                    }
-                                }
-                            },
-                            'wmo:dataPolicy': {
-                                'type': 'text',
-                                'fields': {
-                                    'raw': {
-                                        'type': 'keyword'
-                                    }
-                                }
                             }
                         }
                     }
@@ -154,11 +119,11 @@ class ElasticsearchBackend(BaseBackend):
             LOGGER.debug(f'Deleting index {self.index_name}')
             self.es.indices.delete(index=self.index_name)
 
-    def save(self, record: dict) -> None:
-        LOGGER.debug(f"Indexing record {record['id']}")
-        self.es.index(index=self.index_name, id=record['id'], body=record)
+    def save(self, message: dict) -> None:
+        LOGGER.debug(f"Indexing message {message['id']}")
+        self.es.index(index=self.index_name, id=message['id'], body=message)
 
-    def exists(self, identifier: str) -> bool:
+    def message_exists(self, identifier: str) -> bool:
         LOGGER.debug(f'Querying Replay API for id {identifier}')
         try:
             _ = self.es.get(index=self.index_name, id=identifier)
@@ -166,5 +131,41 @@ class ElasticsearchBackend(BaseBackend):
         except NotFoundError:
             return False
 
+    def clean(self, hours: int) -> None:
+        before = datetime_hours_ago(hours)
+
+        query = {
+            'query': {
+                'bool': {
+                    'should': [{
+                        'range': {
+                            'properties.pubtime': {
+                                'lte': before
+                            }
+                        }
+                    }]
+                }
+            }
+        }
+
+        LOGGER.debug(f'deleting documents older than {hours} hours ({before})')  # noqa
+        self.es.delete_by_query(index=self.index_name, **query)
+
+        return
+
     def __repr__(self):
         return '<ElasticsearchBackend>'
+
+
+def datetime_hours_ago(hours: int) -> datetime:
+    """
+    Calculate datetime given n hours ago
+
+    :param hours: `int` of number of hours
+
+    :returns: `datetime.date` object of date n hours ago
+    """
+
+    today = datetime.utcnow()
+
+    return today - timedelta(hours=hours)
