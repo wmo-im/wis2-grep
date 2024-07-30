@@ -92,19 +92,42 @@ class Loader:
 
 @click.command()
 @click.pass_context
+@click.option('--force', '-f', 'force', is_flag=True, default=False,
+              help='Force reinitialization of backend')
 @click.option('--yes', '-y', 'bypass', is_flag=True, default=False,
               help='Bypass permission prompts')
 @cli_options.OPTION_VERBOSITY
-def setup(ctx, bypass, verbosity='NOTSET'):
+def setup(ctx, force, bypass, verbosity='NOTSET'):
     """Create Global Replay Service backend"""
-
-    if not bypass:
-        if not click.confirm('Create Global Replay Service backend?  This will overwrite existing collections', abort=True):  # noqa
-            return
 
     backend = BACKENDS[BACKEND_TYPE]({'connection': BACKEND_CONNECTION})
     LOGGER.debug(f'Backend: {backend}')
-    backend.setup()
+
+    if backend.exists():
+        if not force:
+            click.echo('Backend already exists')
+            return
+        else:
+            if bypass:
+                click.echo('Reinitializing backend')
+                backend.teardown()
+                backend.setup()
+            else:
+                msg = ('Recreate backend?  This will delete all metadata '
+                       'and delete/setup/reinitialize the backend.')
+
+                if not click.confirm(msg, abort=True):
+                    click.echo('Not reinitializing backend')
+                    return
+                else:
+                    click.echo('Reinitializing backend')
+                    backend.teardown()
+                    backend.setup()
+    else:
+        click.echo('Setting up backend')
+        backend.setup()
+
+    click.echo('Done')
 
 
 @click.command()

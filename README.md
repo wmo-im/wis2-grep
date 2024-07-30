@@ -56,6 +56,9 @@ pywis-pubsub schema sync
 # setup backend
 wis2-grep setup
 
+# setup backend (force reinitialization of backend)
+wis2-grep setup --force
+
 # teardown backend
 wis2-grep teardown
 
@@ -135,6 +138,9 @@ make force-build
 # start all containers
 make up
 # API is up at http://localhost
+
+# reinitialize backend
+make reinit-backend
 
 # start all containers in dev mode
 make dev

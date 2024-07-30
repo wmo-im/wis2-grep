@@ -62,6 +62,16 @@ class BaseBackend(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def exists(self) -> bool:
+        """
+        Querying whether backend exists
+
+        :returns: `bool` of whether backend exists
+        """
+
+        raise NotImplementedError()
+
+    @abstractmethod
     def message_exists(self, identifier: str) -> bool:
         """
         Query whether a message exists in a backend

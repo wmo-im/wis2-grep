@@ -110,7 +110,6 @@ class ElasticsearchBackend(BaseBackend):
         self.es = Elasticsearch(**settings)
 
     def setup(self) -> None:
-        self.teardown()
         LOGGER.debug(f'Creating index {self.index_name}')
         self.es.indices.create(index=self.index_name, body=self.ES_SETTINGS)
 
@@ -122,6 +121,11 @@ class ElasticsearchBackend(BaseBackend):
     def save(self, message: dict) -> None:
         LOGGER.debug(f"Indexing message {message['id']}")
         self.es.index(index=self.index_name, id=message['id'], body=message)
+
+    def exists(self) -> bool:
+        LOGGER.debug('Checking whether backend exists')
+
+        return self.es.indices.exists(index=self.index_name)
 
     def message_exists(self, identifier: str) -> bool:
         LOGGER.debug(f'Querying Replay API for id {identifier}')

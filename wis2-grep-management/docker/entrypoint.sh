@@ -34,7 +34,7 @@ echo "Caching WNM schema"
 pywis-pubsub schema sync
 
 echo "Setting up notification message backend"
-wis2-grep setup --yes
+wis2-grep setup
 
 echo "END /entrypoint.sh"
 exec "$@"
