@@ -41,6 +41,9 @@ login:
 dev:
 	docker compose $(DOCKER_COMPOSE_ARGS) --file docker-compose.dev.yml up
 
+clean-backend:
+	docker exec -it wis2-grep-management sh -c "wis2-grep clean"
+
 reinit-backend:
 	docker exec -it wis2-grep-management sh -c "wis2-grep setup --force"
 
@@ -54,4 +57,4 @@ clean:
 rm:
 	docker volume rm $(shell docker volume ls --filter name=wis2-grep -q)
 
-.PHONY: build up dev login down restart reinit-backend force-build logs rm clean
+.PHONY: build up dev login down restart clean-backend reinit-backend force-build logs rm clean
