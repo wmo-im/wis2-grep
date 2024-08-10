@@ -19,6 +19,15 @@
 #
 ###############################################################################
 
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      mode: non-blocking
+      max-buffer-size: 100m
+      max-size: 10m
+      max-file: 1
+
 services:
   wis2-grep-backend:
     container_name: wis2-grep-backend
@@ -49,6 +58,7 @@ services:
       retries: 100
     networks:
       - wis2-grep-net
+    <<: *logging
 
   wis2-grep-broker:
     container_name: wis2-grep-broker
@@ -59,6 +69,7 @@ services:
       - wis2-grep.env
     networks:
       - wis2-grep-net
+    <<: *logging
 
   wis2-grep-management:
     container_name: wis2-grep-management
@@ -81,6 +92,7 @@ services:
     command: ["pywis-pubsub", "subscribe", "--config", "/app/docker/pywis-pubsub.yml", "--verbosity", "DEBUG"]
     networks:
       - wis2-grep-net
+    <<: *logging
 
   wis2-grep-api:
     container_name: wis2-grep-api
@@ -101,6 +113,7 @@ services:
     restart: unless-stopped
     networks:
       - wis2-grep-net
+    <<: *logging
 
 volumes:
   wis2-grep-backend-data:
