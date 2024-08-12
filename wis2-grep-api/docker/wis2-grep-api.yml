@@ -8,15 +8,13 @@ server:
     language: en-US
     cors: true
     pretty_print: true
-    limit: 10
-    # templates: /path/to/templates
+    limit: 1000
     map:
       url: https://tile.openstreetmap.org/{z}/{x}/{y}.png
       attribution: 'Map data &copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
 
 logging:
     level: ${WIS2_GREP_LOGGING_LEVEL}
-    #logfile: /tmp/pygeoapi.log
 
 metadata:
     identification:
