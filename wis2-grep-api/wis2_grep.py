@@ -27,9 +27,11 @@
 #
 # =================================================================
 
+from datetime import datetime, timedelta
 import json
 import logging
 import os
+import threading
 import uuid
 
 from pywis_pubsub.mqtt import MQTTPubSubClient
@@ -47,6 +49,10 @@ MQTT_CLIENT = MQTTPubSubClient(BROKER_URL)
 LOGGER = logging.getLogger(__name__)
 
 GB_LINKS = []
+
+EXAMPLE_UUID = str(uuid.uuid4())
+NOW = datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+TWO_HOURS_AGO = (datetime.now() - timedelta(hours=2)).strftime('%Y-%m-%dT%H:%M:%SZ')  # noqa
 
 for key, value in os.environ.items():
     if key.startswith('WIS2_GREP_GB_LINK'):
@@ -73,7 +79,7 @@ PROCESS_METADATA = {
     'links': [{
         'type': 'text/html',
         'rel': 'canonical',
-        'title': 'wis2grep information',
+        'title': 'wis2-grep information',
         'href': 'https://github.com/wmo-im/wis2-grep',
         'hreflang': 'en-US'
     }, {
@@ -86,9 +92,10 @@ PROCESS_METADATA = {
     'inputs': {
         'topic': {
             'title': 'Topic',
-            'description': 'The topic to subscribe to',
+            'description': 'Topic to subscribe to',
             'schema': {
-                'type': 'string'
+                'type': 'string',
+                'example': 'cache/a/wis2/meteofrance'
             },
             'minOccurs': 1,
             'maxOccurs': 1,
@@ -98,7 +105,9 @@ PROCESS_METADATA = {
             'title': 'Datetime',
             'description': 'Datetime (RFC3339) instant or envelope',
             'schema': {
-                'type': 'string'
+                'type': 'string',
+                'format': 'date-time',
+                'example': f'{TWO_HOURS_AGO}/{NOW}'
             },
             'minOccurs': 1,
             'maxOccurs': 1,
@@ -109,7 +118,8 @@ PROCESS_METADATA = {
             'description': 'UUID of subscriber, used in response topic',
             'schema': {
                 'type': 'string',
-                'format': 'uuid'
+                'format': 'uuid',
+                'example': EXAMPLE_UUID
             },
             'minOccurs': 1,
             'maxOccurs': 1,
@@ -139,23 +149,28 @@ PROCESS_METADATA = {
                             'properties': {
                                 'href': {
                                     'type': 'string',
-                                    'example': 'http://data.example.com/buildings/123'  # noqa
+                                    'description': 'MQTT endpoint',
+                                    'example': GB_LINKS[0][1]
                                 },
                                 'rel': {
                                     'type': 'string',
+                                    'description': 'link relation',
                                     'example': 'alternate'
                                 },
                                 'type': {
                                     'type': 'string',
+                                    'description': 'media type',
                                     'example': 'application/geo+json'
                                 },
                                 'title': {
                                     'type': 'string',
-                                    'example': 'Trierer Strasse 70, 53115 Bonn'
+                                    'description': 'title of link',
+                                    'example': GB_LINKS[0][2]
                                 },
                                 'channel': {
                                     'type': 'string',
-                                    'description': 'topic to subscribe to for broker workflow'  # noqa
+                                    'description': 'topic to subscribe to',
+                                    'example': f'replay/a/wis2/{EXAMPLE_UUID}'
                                 }
                             }
                         }
@@ -166,9 +181,9 @@ PROCESS_METADATA = {
     },
     'example': {
         'inputs': {
-            'topic': 'origin/a/wis2/fr-meteofrance',
-            'datetime': '2024-06-10T03:00:00Z/2024-06-10T06:00:00Z',
-            'subscriber-id': 'a30c829b-0ee3-4e4f-bc1f-1f784465b20e'
+            'topic': 'cache/a/wis2/fr-meteofrance',
+            'datetime': f'{TWO_HOURS_AGO}/{NOW}',
+            'subscriber-id': EXAMPLE_UUID
         }
     }
 }
@@ -202,6 +217,11 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
             LOGGER.error(msg)
             raise ProcessorExecuteError(msg)
 
+        if len(topic.split('/')) < 4:
+            msg = 'topic level minimum of centre-id required'
+            LOGGER.error(msg)
+            raise ProcessorExecuteError(msg)
+
         try:
             LOGGER.debug('Validating subscriber-id')
             uuid.UUID(subscriber_id)
@@ -212,19 +232,15 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
         pub_topic = f'replay/a/wis2/{CENTRE_ID}/{subscriber_id}'
 
         api_params = {
-            # 'datetime': datetime_
+            'datetime': datetime_,
             'topic': api_topic,
+            'limit': 100000
         }
 
-        try:
-            r = requests.get(API_ENDPOINT, params=api_params)
-            r.raise_for_status()
-            r = r.json()
-        except requests.exceptions.HTTPError as err:
-            LOGGER.error(err)
-            outputs['status'] = 'failed'
-            outputs['description'] = err
-            return 'application/json', outputs
+        LOGGER.debug('Sending API query to thread')
+        t = threading.Thread(target=self._get_messages,
+                             args=(api_params, pub_topic))
+        t.start()
 
         outputs['status'] = 'successful'
         outputs['subscriptions'] = []
@@ -238,10 +254,46 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
                 'channel': pub_topic
             })
 
-        for feature in r['features']:
-            MQTT_CLIENT.pub(pub_topic, json.dumps(feature))
-
         return 'application/json', outputs
+
+    def _get_messages(self, api_params, pub_topic) -> None:
+        """
+        Utility to fetch all messages from API
+
+        :param api_params: `dict` of API query parameters
+        :param pub_topic: `str` of publication topic
+
+        :returns: `None`
+        """
+
+        next_link = None
+        found_next_link = False
+
+        while True:
+            try:
+                if next_link is None:
+                    LOGGER.debug(f'Querying API with {api_params}')
+                    r = requests.get(API_ENDPOINT, params=api_params)
+                else:
+                    LOGGER.debug(f'Querying API with {next_link}')
+                    r = requests.get(next_link)
+
+                r.raise_for_status()
+                r = r.json()
+
+                for feature in r['features']:
+                    MQTT_CLIENT.pub(pub_topic, json.dumps(feature))
+
+                for link in r['links']:
+                    if 'next' in link:
+                        next_link = link['next']
+                        found_next_link = True
+
+                if not found_next_link:
+                    break
+
+            except requests.exceptions.HTTPError as err:
+                LOGGER.error(err)
 
     def __repr__(self):
         return f'<WIS2GrepSubscriberProcessor> {self.name}'
