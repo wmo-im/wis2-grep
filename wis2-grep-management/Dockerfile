@@ -25,13 +25,13 @@ LABEL maintainer="tomkralidis@gmail.com"
 
 ENV TZ="Etc/UTC" \
     DEBIAN_FRONTEND="noninteractive" \
-    DEBIAN_PACKAGES="bash cron curl git python3-pip python3-setuptools vim"
+    DEBIAN_PACKAGES="bash cron curl git python3-pip python3-setuptools sudo vim"
 
 # copy the app
 COPY ./ /app
 
 # add to crontab
-COPY ./docker/wis2-grep-management.cron /etc/cron.d/wis2-grep-management.cron
+COPY ./docker/wis2-grep-management.cron /var/spool/cron/crontabs/wis2-grep
 
 RUN apt-get update -y && \
     # install dependencies
@@ -45,7 +45,13 @@ RUN apt-get update -y && \
     apt autoremove -y && \
     apt-get -q clean && \
     rm -rf /var/lib/apt/lists/* && \
-    chmod 0644 /etc/cron.d/wis2-grep-management.cron && \
-    crontab /etc/cron.d/wis2-grep-management.cron
+    chmod 0644 /var/spool/cron/crontabs/wis2-grep && \
+    crontab /var/spool/cron/crontabs/wis2-grep && \
+    # add wis2-grep user
+    useradd -ms /bin/bash wis2-grep && \
+    adduser wis2-grep sudo && \
+    echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+USER wis2-grep
 
 ENTRYPOINT [ "/app/docker/entrypoint.sh" ]
