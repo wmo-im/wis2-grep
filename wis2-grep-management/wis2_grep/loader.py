@@ -30,7 +30,7 @@ from pywis_pubsub import cli_options
 
 from wis2_grep.backend import BACKENDS
 from wis2_grep.env import (BACKEND_TYPE, BACKEND_CONNECTION,
-                           MESSAGE_RETENTION_HOURS)
+                           INCLUDE_GATEWAYS, MESSAGE_RETENTION_HOURS)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -66,6 +66,10 @@ class Loader:
             except json.decoder.JSONDecodeError as err:
                 LOGGER.warning(err)
                 return
+
+        if topic.endswith('gts-to-wis2') and not INCLUDE_GATEWAYS:
+            LOGGER.debug('Filtering out gateway messages')
+            return
 
         LOGGER.debug('Adding topic to message')
         self.message['properties']['topic'] = topic
