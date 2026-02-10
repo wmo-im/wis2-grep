@@ -38,7 +38,7 @@ services:
       - discovery.seed_hosts=[]
       - node.name=elasticsearch-01
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx1024m"
       - cluster.name=es-wis2-grep
       - xpack.security.enabled=false
     mem_limit: 1.5g
