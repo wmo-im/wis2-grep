@@ -53,8 +53,8 @@ services:
     #     soft: -1
     #     hard: -1
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200"]
-      interval: 5s
+      test: ["CMD", "curl", "-f", "http://localhost:9200/wis2-notification-messages/_search"]
+      interval: 1m
       retries: 100
     networks:
       - wis2-grep-net
