@@ -1,5 +1,7 @@
 broker: ${WIS2_GREP_GB}
 
+client_id: wis2-grep-management
+
 subscribe_topics:
     - origin/a/wis2/#
     - cache/a/wis2/#
