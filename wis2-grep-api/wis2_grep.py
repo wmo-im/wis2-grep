@@ -204,7 +204,7 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
         super().__init__(processor_def, PROCESS_METADATA)
         self.supports_outputs = True
 
-    def execute(self, data):
+    def execute(self, data, outputs=None):
         datetime_ = data.get('datetime')
         topic = data.get('topic')
         subscriber_id = data.get('subscriber-id')
