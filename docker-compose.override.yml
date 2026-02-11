@@ -26,4 +26,4 @@ services:
       - 1884:1884  # websockets
   wis2-grep-api:
     ports:
-      - 80:80
+      - 8000:8080

@@ -26,17 +26,20 @@ LABEL maintainer="Tom Kralidis <tomkralidis@gmail.com>"
 ENV PYGEOAPI_CONFIG=/pygeoapi/local.config.yml
 ENV PYGEOAPI_OPENAPI=/pygeoapi/local.openapi.yml
 
+USER root
+
 RUN apt-get update && \
-    apt-get install -y curl && \
-    /venv/bin/pip3 install pywis-pubsub
+    apt-get install -y curl
 
 COPY ./app.py /pygeoapi/pygeoapi/app.py
 COPY ./wis2_grep.py /pygeoapi/pygeoapi/process/wis2_grep.py
 COPY ./docker/wis2-grep-api.yml /pygeoapi/local.config.yml
 COPY ./docker/entrypoint.sh /app/docker/wis2-grep-api/entrypoint.sh
 
-RUN chmod +x /app/docker/wis2-grep-api/entrypoint.sh && \
-    chgrp -R 0 /pygeoapi && \
+RUN /venv/bin/pip3 install pywis-pubsub && \
+    chmod +x /app/docker/wis2-grep-api/entrypoint.sh
+
+RUN chgrp -R 0 /pygeoapi && \
     chmod -R g=u /pygeoapi
 
 USER 1001
