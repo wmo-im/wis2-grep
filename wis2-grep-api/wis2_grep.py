@@ -46,6 +46,7 @@ CENTRE_ID = os.environ['WIS2_GREP_CENTRE_ID']
 API_ENDPOINT = f'{API_URL_DOCKER}/collections/wis2-notification-messages/items'
 
 MQTT_CLIENT = MQTTPubSubClient(BROKER_URL)
+MQTT_CLIENT.client_id = 'wis2-grep-api-client'
 
 LOGGER = logging.getLogger(__name__)
 
