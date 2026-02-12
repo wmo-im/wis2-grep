@@ -39,10 +39,11 @@ import requests
 
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
-API_ENDPOINT = 'http://localhost/collections/wis2-notification-messages/items'
-
+API_URL_DOCKER = os.environ['WIS2_GREP_API_URL_DOCKER']
 BROKER_URL = os.environ['WIS2_GREP_BROKER_URL']
 CENTRE_ID = os.environ['WIS2_GREP_CENTRE_ID']
+
+API_ENDPOINT = f'{API_URL_DOCKER}/collections/wis2-notification-messages/items'
 
 MQTT_CLIENT = MQTTPubSubClient(BROKER_URL)
 
