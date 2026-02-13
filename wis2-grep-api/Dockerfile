@@ -36,7 +36,7 @@ COPY ./wis2_grep.py /pygeoapi/pygeoapi/process/wis2_grep.py
 COPY ./docker/wis2-grep-api.yml /pygeoapi/local.config.yml
 COPY ./docker/entrypoint.sh /app/docker/wis2-grep-api/entrypoint.sh
 
-RUN /venv/bin/pip3 install pywis-pubsub && \
+RUN /venv/bin/pip3 install paho-mqtt && \
     chmod +x /app/docker/wis2-grep-api/entrypoint.sh
 
 RUN chgrp -R 0 /pygeoapi && \

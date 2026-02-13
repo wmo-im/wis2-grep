@@ -34,7 +34,6 @@ import os
 import threading
 import uuid
 
-from pywis_pubsub.mqtt import MQTTPubSubClient
 import requests
 
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
@@ -44,9 +43,6 @@ BROKER_URL = os.environ['WIS2_GREP_BROKER_URL']
 CENTRE_ID = os.environ['WIS2_GREP_CENTRE_ID']
 
 API_ENDPOINT = f'{API_URL_DOCKER}/collections/wis2-notification-messages/items'
-
-MQTT_CLIENT = MQTTPubSubClient(BROKER_URL)
-MQTT_CLIENT.client_id = 'wis2-grep-api-client'
 
 LOGGER = logging.getLogger(__name__)
 
@@ -253,7 +249,7 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
                 'type': 'application/geo+json',
                 'href': gb_link[1],
                 'title': gb_link[2],
-                'channel': pub_topic
+                'channel': f'{pub_topic}/#'
             })
 
         return 'application/json', outputs
@@ -268,10 +264,16 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
         :returns: `None`
         """
 
+        import paho.mqtt.client as mqtt
+        client = mqtt.Client()
+        client.username_pw_set('wis2-grep', 'wis2-grep')
+
+        client.connect("wis2-grep-broker", 1883, 60)
+
         next_link = None
-        found_next_link = False
 
         while True:
+            found_next_link = False
             try:
                 if next_link is None:
                     LOGGER.debug(f'Querying API with {api_params}')
@@ -284,7 +286,8 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
                 r = r.json()
 
                 for feature in r['features']:
-                    MQTT_CLIENT.pub(pub_topic, json.dumps(feature))
+                    full_pub_topic = f'{pub_topic}/{feature['properties']['topic']}'  # noqa
+                    client.publish(full_pub_topic, json.dumps(feature))
 
                 for link in r['links']:
                     if 'next' in link:
@@ -296,6 +299,8 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
 
             except requests.exceptions.HTTPError as err:
                 LOGGER.error(err)
+
+        client.disconnect()
 
     def __repr__(self):
         return f'<WIS2GrepSubscriberProcessor> {self.name}'
