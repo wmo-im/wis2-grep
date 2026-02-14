@@ -32,6 +32,7 @@ import json
 import logging
 import os
 import threading
+from urllib.parse import urlparse
 import uuid
 
 import requests
@@ -39,7 +40,7 @@ import requests
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
 API_URL_DOCKER = os.environ['WIS2_GREP_API_URL_DOCKER']
-BROKER_URL = os.environ['WIS2_GREP_BROKER_URL']
+BROKER_URL = urlparse(os.environ['WIS2_GREP_BROKER_URL'])
 CENTRE_ID = os.environ['WIS2_GREP_CENTRE_ID']
 
 API_ENDPOINT = f'{API_URL_DOCKER}/collections/wis2-notification-messages/items'
@@ -266,9 +267,9 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
 
         import paho.mqtt.client as mqtt
         client = mqtt.Client()
-        client.username_pw_set('wis2-grep', 'wis2-grep')
+        client.username_pw_set(BROKER_URL.username, BROKER_URL.password)
 
-        client.connect("wis2-grep-broker", 1883, 60)
+        client.connect(BROKER_URL.hostname, BROKER_URL.port, 60)
 
         next_link = None
 
