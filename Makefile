@@ -42,10 +42,10 @@ dev:
 	docker compose $(DOCKER_COMPOSE_ARGS) --file docker-compose.dev.yml up
 
 clean-backend:
-	docker exec -it wis2-grep-management sh -c "wis2-grep clean"
+	docker exec -it wis2-grep-management sh -c "/venv/bin/wis2-grep clean"
 
 reinit-backend:
-	docker exec -it wis2-grep-management sh -c "wis2-grep setup --force"
+	docker exec -it wis2-grep-management sh -c "/venv/bin/wis2-grep setup --force"
 
 logs:
 	docker compose $(DOCKER_COMPOSE_ARGS) logs --follow
