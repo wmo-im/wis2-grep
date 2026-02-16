@@ -7,6 +7,6 @@ services:
 
     ports:
       - 8883:1883
-  wis2-gdc-api:
+  wis2-grep-api:
     ports:
       - 443:8080

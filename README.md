@@ -11,6 +11,7 @@ wis2-grep is a Reference Implementation of a WIS2 Global Replay Service.
 - connects to a WIS2 Global Broker, subscribed to the following topics:
   - `origin/a/wis2/#` and `cache/a/wis2/#`
 - on notification messages
+  - check for message duplication
   - publish to a WIS2 Global Replay Service (OGC API - Features) using one of the supported transaction backends:
     - [OGC API - Features - Part 4: Create, Replace, Update and Delete](https://docs.ogc.org/DRAFTS/20-002.html)
     - Elasticsearch direct (default)
@@ -84,6 +85,7 @@ The Docker setup uses Docker and Docker Compose to manage the following services
 - **wis2-grep-management**: management service to publish notification messages published from a WIS2 Global Broker instance
   - the default Global Broker connection is to NOAA.  This can be modified in `wis2-grep.env` to point to a different Global Broker
 - **wis2-grep-backend**: API search engine backend (default Elasticsearch)
+- **wis2-grep-cache**: message cache (default Redis)
 
 See [`wis2-grep.env`](wis2-grep.env) for default environment variable settings.
 

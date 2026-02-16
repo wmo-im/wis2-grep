@@ -60,6 +60,20 @@ services:
       - wis2-grep-net
     <<: *logging
 
+  wis2-grep-cache:
+    image: redis:latest
+    container_name: wis2-grep-cache
+    env_file:
+      - wis2-grep.env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 100
+    networks:
+      - wis2-grep-net
+    <<: *logging
+
   wis2-grep-broker:
     container_name: wis2-grep-broker
     restart: always
@@ -81,6 +95,8 @@ services:
       - WIS2_GREP_API_URL_DOCKER=http://wis2-grep-api
     depends_on:
       wis2-grep-backend:
+        condition: service_healthy
+      wis2-grep-cache:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://wis2-grep-backend:9200/wis2-notification-messages/_search"]
