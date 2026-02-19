@@ -98,7 +98,7 @@ resources:
         providers:
             - type: feature
               name: ${WIS2_GREP_BACKEND_TYPE:-Elasticsearch}
-              data: ${WIS2_GREP_BACKEND_CONNECTION:-http://wis2-grep-backend:9200/wis2-notification-messages}
+              data: ${WIS2_GREP_BACKEND_CONNECTION:-http://wis2-grep-backend:9200/wis2-notification-messages.*}
               id_field: id
               time_field: pubtime
 

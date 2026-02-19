@@ -99,7 +99,7 @@ services:
       wis2-grep-cache:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://wis2-grep-backend:9200/wis2-notification-messages/_search"]
+      test: ["CMD", "curl", "-f", "http://wis2-grep-backend:9200/wis2-notification-messages.*/_search"]
       interval: 1m
       retries: 3
     volumes:

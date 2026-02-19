@@ -72,18 +72,6 @@ class BaseBackend(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def message_exists(self, identifier: str) -> bool:
-        """
-        Query whether a message exists in a backend
-
-        :param identifier: `str` of message identifier
-
-        :returns: `bool` of whether message exists in backend
-        """
-
-        raise NotImplementedError()
-
-    @abstractmethod
     def clean(self, hours: int) -> None:
         """
         Clean messages older than n hours from backend

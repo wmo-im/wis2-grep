@@ -89,6 +89,8 @@ The Docker setup uses Docker and Docker Compose to manage the following services
 
 See [`wis2-grep.env`](wis2-grep.env) for default environment variable settings.
 
+NOTE: to configure message retention, set ``WIS2_GREP_MESSAGE_RETENTION_HOURS`` accordingly
+
 To adjust service ports, edit [`docker-compose.override.yml`](docker-compose.override.yml) accordingly.
 
 The [`Makefile`](Makefile) in the root directory provides options to manage the Docker Compose setup.

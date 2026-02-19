@@ -57,13 +57,5 @@ class OGCAPIFeaturesBackend(BaseBackend):
             LOGGER.debug('Updating existing notification in collection')
             _ = self.conn.get_collection_update(self.collection, payload)
 
-    def message_exists(self, identifier: str) -> bool:
-        LOGGER.debug(f'Querying Replay API for id {identifier}')
-        try:
-            _ = self.conn.collection_item(self.collection, identifier)
-            return True
-        except RuntimeError:
-            return False
-
     def __repr__(self):
         return '<OGCAPIFeaturesBackend>'
