@@ -233,6 +233,7 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
         api_params = {
             'datetime': datetime_,
             'topic': api_topic,
+            'sortby': '-pubtime',
             'limit': 100000
         }
 
