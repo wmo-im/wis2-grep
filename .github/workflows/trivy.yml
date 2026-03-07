@@ -1,0 +1,39 @@
+name: Run Trivy vulnerability scanner
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 8 * * *'  # runs daily at 8h UTC
+
+jobs:
+  main:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        # NOTE: other containers tested upstream
+        image: [ {tag: 'wis2-grep-management', build: 'wis2-grep-management'} ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build docker image ${{ matrix.image.tag }}
+        run: |
+          docker build -t ${{ matrix.image.tag }}:test ${{ matrix.image.build }}
+      - name: Run Trivy vulnerability scanner on ${{ matrix.image.tag }}
+        if: always()
+        uses: aquasecurity/trivy-action@0.32.0
+        env:
+          TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db:2
+          TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db:1
+        with:
+          image-ref: ${{ matrix.image.tag }}:test
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          # ignorefile: '.trivyignore'
