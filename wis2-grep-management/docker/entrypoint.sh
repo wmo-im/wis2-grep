@@ -34,8 +34,5 @@ echo "Caching WNM schema"
 echo "Setting up notification message backend"
 /venv/bin/wis2-grep setup -y
 
-echo "Starting cron"
-/usr/local/bin/supercronic /app/docker/wis2-grep-management.cron &
-
 echo "END /entrypoint.sh"
 exec "$@"
