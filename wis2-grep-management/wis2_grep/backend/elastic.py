@@ -19,6 +19,7 @@
 #
 ###############################################################################
 
+from copy import deepcopy
 from datetime import datetime, UTC
 import logging
 from urllib.parse import urlparse
@@ -161,6 +162,21 @@ class ElasticsearchBackend(BaseBackend):
         if self.es.ilm.get_lifecycle(name=self.ilm_lifecycle_policy_name):
             LOGGER.debug(f'Deleting ILM lifecycle policy {self.ilm_lifecycle_policy_name}')  # noqa
             self.es.ilm.delete_lifecycle(name=self.ilm_lifecycle_policy_name)
+
+    def get_retention(self) -> int:
+        ilm = self.es.ilm.get_lifecycle(name=self.ilm_lifecycle_policy_name)
+        hours = ilm[self.ilm_lifecycle_policy_name]['policy']['phases']['delete']['min_age']  # noqa
+        return int(hours.rstrip('h'))
+
+    def set_retention(self, hours: int) -> None:
+        policy = deepcopy(self.ES_ILM_LIFECYCLE_POLICY)
+        policy['phases']['delete']['min_age'] = f'{hours}h'
+
+        LOGGER.debug(f'Creating ILM lifecycle policy {self.ilm_lifecycle_policy_name}')  # noqa
+        self.es.ilm.put_lifecycle(name=self.ilm_lifecycle_policy_name,
+                                  policy=policy)
+
+        return
 
     def save(self, message: dict) -> None:
         now = datetime.now(UTC).strftime('%Y-%m-%d-%H')

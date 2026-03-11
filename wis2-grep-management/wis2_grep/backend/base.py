@@ -50,6 +50,28 @@ class BaseBackend(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def get_retention(self) -> int:
+        """
+        Get the current rentention policy
+
+        :returns: `int` of retention settings (hours)
+        """
+
+        raise NotImplementedError()
+
+    @abstractmethod
+    def set_retention(self, hours: int) -> None:
+        """
+        Set the current rentention policy
+
+        :param hours: `int` of number of hours to set
+
+        :returns: `None`
+        """
+
+        raise NotImplementedError()
+
+    @abstractmethod
     def save(self, message: dict) -> None:
         """
         Upsert a resource to a backend

@@ -153,6 +153,38 @@ def teardown(ctx, bypass, verbosity='NOTSET'):
 
 @click.command()
 @click.pass_context
+@cli_options.OPTION_VERBOSITY
+def get_retention(ctx, verbosity='NOTSET'):
+    """Get current retention settings"""
+
+    backend = BACKENDS[BACKEND_TYPE]({'connection': BACKEND_CONNECTION})
+    LOGGER.debug(f'Backend: {backend}')
+
+    retention = backend.get_retention()
+
+    click.echo(f'Retention is currently set to {retention} hours')
+
+    click.echo('Done')
+
+
+@click.command()
+@click.pass_context
+@click.argument('hours', type=int)
+@cli_options.OPTION_VERBOSITY
+def set_retention(ctx, hours, verbosity='NOTSET'):
+    """Get current retention settings"""
+
+    backend = BACKENDS[BACKEND_TYPE]({'connection': BACKEND_CONNECTION})
+    LOGGER.debug(f'Backend: {backend}')
+
+    click.echo(f'Setting retention to {hours} hours')
+
+    backend.set_retention(hours)
+    ctx.invoke(get_retention)
+
+
+@click.command()
+@click.pass_context
 @click.argument(
     'path', type=click.Path(exists=True, dir_okay=True, file_okay=True))
 @cli_options.OPTION_VERBOSITY

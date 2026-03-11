@@ -61,6 +61,12 @@ wis2-grep setup --force
 # teardown backend
 wis2-grep teardown
 
+# get retention policy
+wis2-grep get-retention
+
+# get/set retention policy (hours)
+wis2-grep set-retention 144
+
 # connect to Global Broker
 # notifications will automatically trigger wis2-grep to publish
 # WNM to the API identified in wis2-grep.env (WIS2_GREP_GB)
@@ -72,7 +78,7 @@ wis2-grep register /path/to/wnm-file.json
 # loading notification messages manually (directory of .json files)
 wis2-grep load /path/to/dir/of/wnm-files
 
-# clean messages from API index
+# manually clean messages from API index
 wis2-grep clean --hours 24
 ```
 
