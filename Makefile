@@ -41,11 +41,17 @@ login:
 dev:
 	docker compose $(DOCKER_COMPOSE_ARGS) --file docker-compose.dev.yml up
 
+list-backend-indices:
+	docker exec -ti wis2-grep-backend sh -c "curl -s http://localhost:9200/_cat/indices | sort"
+
 clean-backend:
 	docker exec -it wis2-grep-management sh -c "/venv/bin/wis2-grep clean"
 
 reinit-backend:
 	docker exec -it wis2-grep-management sh -c "/venv/bin/wis2-grep setup --force"
+
+list-cache-objects:
+	docker exec -it wis2-grep-cache sh -c "redis-cli DBSIZE"
 
 logs:
 	docker compose $(DOCKER_COMPOSE_ARGS) logs --follow
@@ -57,4 +63,4 @@ clean:
 rm:
 	docker volume rm $(shell docker volume ls --filter name=wis2-grep -q)
 
-.PHONY: build up dev login down restart clean-backend reinit-backend force-build logs rm clean
+.PHONY: build up dev login down restart list-backend-indices clean-backend reinit-backend list-cache-objects force-build logs rm clean
