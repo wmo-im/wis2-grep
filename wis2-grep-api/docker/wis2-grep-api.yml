@@ -15,7 +15,7 @@ server:
       url: https://tile.openstreetmap.org/{z}/{x}/{y}.png
       attribution: 'Map data &copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
     icon: ${WIS2_GREP_SERVER_ICON:-https://wmo.int/themes/custom/server_theme/dist/images/favicons//favicon-32x32.png}
-    logo: ${WIS2_GREP_SERVER_LOGO:-https://upload.wikimedia.org/wikipedia/en/thumb/b/b6/World_Meteorological_Organization_Logo.svg/2560px-World_Meteorological_Organization_Logo.svg.png}
+    logo: ${WIS2_GREP_SERVER_LOGO:-https://upload.wikimedia.org/wikipedia/en/thumb/b/b6/World_Meteorological_Organization_Logo.svg/3840px-World_Meteorological_Organization_Logo.svg.png}
 
 logging:
     level: ${WIS2_GREP_LOGGING_LEVEL:-ERROR}
