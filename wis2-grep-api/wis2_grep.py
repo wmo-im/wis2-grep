@@ -112,6 +112,18 @@ PROCESS_METADATA = {
             'maxOccurs': 1,
             'keywords': ['datetime', 'rfc3339']
         },
+        'sortby': {
+            'title': 'sortby',
+            'description': 'Property name to sort by and order',
+            'schema': {
+                'type': 'string',
+                'default': '-pubtime',
+                'example': '-pubtime'
+            },
+            'minOccurs': 0,
+            'maxOccurs': 1,
+            'keywords': ['sortby']
+        },
         'subscriber-id': {
             'title': 'Subscriber id',
             'description': 'UUID of subscriber, used in response topic',
@@ -182,6 +194,7 @@ PROCESS_METADATA = {
         'inputs': {
             'topic': 'cache/a/wis2/fr-meteofrance',
             'datetime': f'{TWO_HOURS_AGO}/{NOW}',
+            'sortby': '-pubtime',
             'subscriber-id': EXAMPLE_UUID
         }
     }
@@ -206,6 +219,7 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
     def execute(self, data, outputs=None):
         datetime_ = data.get('datetime')
         topic = data.get('topic')
+        sortby = data.get('sortby', '-pubtime')
         subscriber_id = data.get('subscriber-id')
 
         LOGGER.debug('Sanitizing topic')
@@ -233,7 +247,7 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
         api_params = {
             'datetime': datetime_,
             'topic': api_topic,
-            'sortby': '-pubtime',
+            'sortby': sortby,
             'limit': 100000
         }
 
