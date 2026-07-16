@@ -32,7 +32,7 @@ LOGGER = logging.getLogger(__name__)
 
 class NotificationMessageHook(Hook):
     def execute(self, topic: str, msg_dict: dict) -> None:
-        self.cache = redis.Redis().from_url(CACHE_URL)
+        self.cache = redis.Redis().from_url(CACHE_URL, protocol=2)
 
         result = self.cache.set(msg_dict['id'],
                                 msg_dict['properties']['data_id'],
