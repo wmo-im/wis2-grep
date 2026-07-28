@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         # NOTE: other containers tested upstream
-        image: [ {tag: 'wis2-grep-management', build: 'wis2-grep-management'} ]
+        image: [ {tag: 'wis2-grep-broker', build: 'wis2-grep-broker'}, {tag: 'wis2-grep-management', build: 'wis2-grep-management'}, {tag: 'wis2-grep-api', build: 'wis2-grep-api'} ]
     steps:
       - name: Checkout code
         uses: actions/checkout@master
