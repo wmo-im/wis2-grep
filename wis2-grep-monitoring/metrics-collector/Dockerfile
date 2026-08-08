@@ -19,32 +19,22 @@
 #
 ###############################################################################
 
-import os
+FROM python:3-alpine
 
-from flask import Flask, Response
-from pygeoapi.flask_app import BLUEPRINT as pygeoapi_blueprint
-import requests
+COPY ./metrics_collector.py /app/metrics_collector.py
+COPY ./requirements.txt /app/requirements.txt
 
+RUN apk update && \
+    apk upgrade --no-cache && \
+    apk add --no-cache curl unzip && \
+    rm -rf /var/cache/apk/* && \
+    pip3 install -r /app/requirements.txt
 
-app = Flask(__name__, static_url_path='/static')
-app.url_map.strict_slashes = False
+ENV PYTHONUNBUFFERED="true"
 
-app.register_blueprint(pygeoapi_blueprint, url_prefix='/')
+RUN chgrp -R 0 /app && \
+    chmod -R g=u /app
 
-try:
-    from flask_cors import CORS
-    CORS(app)
-except ImportError:  # CORS needs to be handled by upstream server
-    pass
+USER 1001
 
-
-@app.route('/wis2-grep-metrics.txt')
-def metrics():
-
-    collector_url = os.environ.get('WIS2_GREP_COLLECTOR_URL')
-
-    try:
-        response = requests.get(collector_url).text
-        return Response(response, mimetype='text/plain')
-    except Exception:
-        return 'Internal Server Error', 500
+ENTRYPOINT [ "python3","-u","/app/metrics_collector.py" ]

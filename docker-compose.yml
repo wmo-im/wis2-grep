@@ -131,6 +131,61 @@ services:
       - wis2-grep-net
     <<: *logging
 
+  wis2-grep-prometheus:
+    image: prom/prometheus
+    container_name: wis2-grep-prometheus
+    volumes:
+      - ./wis2-grep-monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - wis2-grep-net
+    <<: *logging
+
+  wis2-grep-grafana:
+    image: grafana/grafana-oss
+    container_name: wis2-grep-grafana
+    env_file:
+      - wis2-grep.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 5s
+      retries: 100
+    networks:
+      - wis2-grep-net
+    volumes:
+      - ./wis2-grep-monitoring/grafana/datasource.yml:/etc/grafana/provisioning/datasources/grafana-datasource.yml
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_HIDE_VERSION=true
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+      - GF_USERS_VIEWERS_CAN_EDIT=true
+      - GF_UNIFIED_ALERTING_ENABLED=false
+      - GF_ALERTING_ENABLED=true
+      - GF_USERS_DEFAULT_THEME=dark
+      - GF_DISABLE_SIGNOUT_MENU=true
+      - GF_SERVER_ROOT_URL=${WIS2_GREP_API_URL}/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    <<: *logging
+
+  wis2-grep-metrics-collector:
+    container_name: wis2-grep-metrics-collector
+    restart: unless-stopped
+    build:
+      context: ./wis2-grep-monitoring/metrics-collector/
+    env_file:
+      - wis2-grep.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006"]
+      interval: 5s
+      retries: 3
+    networks:
+      - wis2-grep-net
+    depends_on:
+      - wis2-grep-broker
+    <<: *logging
+
 volumes:
   wis2-grep-backend-data:
   wis2-grep-management-data:

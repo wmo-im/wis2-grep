@@ -63,6 +63,11 @@ resources:
         crs:
             - CRS84
         links:
+            - type: text/plain
+              rel: related
+              title: OpenMetrics
+              href: ${WIS2_GREP_API_URL:-http://localhost}/wis2-grep-metrics.txt
+              hreflang: en-CA
             - type: application/geo+json
               rel: items
               title: Notifications from Météo-France, Global Broker Service

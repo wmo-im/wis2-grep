@@ -32,6 +32,8 @@ LOGGER = logging.getLogger(__name__)
 
 class NotificationMessageHook(Hook):
     def execute(self, topic: str, msg_dict: dict) -> None:
+        LOGGER.debug('Notification message hook execution begin')
+        LOGGER.debug('Deduplicating message')
         self.cache = redis.Redis().from_url(CACHE_URL, protocol=2)
 
         result = self.cache.set(msg_dict['id'],
@@ -44,7 +46,7 @@ class NotificationMessageHook(Hook):
         else:
             LOGGER.info(f"Duplicate message {msg_dict['id']}")
 
-        LOGGER.debug('Notification message hook execution begin')
+        LOGGER.debug('Loading message')
         loader = Loader()
         loader.load(msg_dict, topic)
         LOGGER.debug('Notification message hook execution end')

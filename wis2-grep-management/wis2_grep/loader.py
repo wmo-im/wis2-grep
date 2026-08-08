@@ -27,10 +27,12 @@ from typing import Union
 import click
 
 from pywis_pubsub import cli_options
+from pywis_pubsub.mqtt import MQTTPubSubClient
 
 from wis2_grep.backend import BACKENDS
-from wis2_grep.env import (BACKEND_TYPE, BACKEND_CONNECTION,
-                           INCLUDE_GATEWAYS, MESSAGE_RETENTION_HOURS)
+from wis2_grep.env import (BACKEND_TYPE, BACKEND_CONNECTION, BROKER_URL,
+                           CENTRE_ID, INCLUDE_GATEWAYS,
+                           MESSAGE_RETENTION_HOURS)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -78,8 +80,9 @@ class Loader:
 
         LOGGER.info('Publishing notification message to backend')
         self._publish()
+        self._publish_metrics(topic)
 
-    def _publish(self):
+    def _publish(self) -> None:
         """
         Publish notification message from `wis2_grep.loader.Loader.message`
         to backend
@@ -89,6 +92,27 @@ class Loader:
 
         LOGGER.info(f'Saving to {BACKEND_TYPE} ({BACKEND_CONNECTION})')
         self.backend.save(self.message)
+
+    def _publish_metrics(self, topic: str) -> None:
+        """
+        Publish metrics
+
+        :param topic: `str` of incoming topic (default is `None`)
+
+        :returns: `None`
+        """
+
+        m = MQTTPubSubClient(BROKER_URL)
+        message = {
+            'labels': [
+                topic.split('/')[3],
+                CENTRE_ID,
+                topic
+            ]
+        }
+
+        publish_metrics_topic = 'wis2-grep/metrics/messages_processed_total'
+        m.pub(publish_metrics_topic, json.dumps(message))
 
     def __repr__(self):
         return '<Loader>'

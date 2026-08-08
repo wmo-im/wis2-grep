@@ -33,10 +33,11 @@ RUN apt-get update && \
 
 COPY ./app.py /pygeoapi/pygeoapi/app.py
 COPY ./wis2_grep.py /pygeoapi/pygeoapi/process/wis2_grep.py
+COPY ./requirements.txt /app/docker/wis2-grep-api/requirements.txt
 COPY ./docker/wis2-grep-api.yml /pygeoapi/local.config.yml
 COPY ./docker/entrypoint.sh /app/docker/wis2-grep-api/entrypoint.sh
 
-RUN /venv/bin/pip3 install paho-mqtt && \
+RUN /venv/bin/pip3 install -r /app/docker/wis2-grep-api/requirements.txt && \
     chmod +x /app/docker/wis2-grep-api/entrypoint.sh
 
 RUN chgrp -R 0 /pygeoapi && \
