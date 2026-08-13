@@ -5,6 +5,7 @@ client_id: wis2-grep-management
 subscribe_topics:
     - origin/a/wis2/#
     - cache/a/wis2/#
+    - monitor/a/wis2/#
 
 qos: 1
 
@@ -12,4 +13,4 @@ verify_data: false
 
 validate_message: false
 
-hook: wis2_grep.hook.NotificationMessageHook
+hook: wis2_grep.hook.MessageHook

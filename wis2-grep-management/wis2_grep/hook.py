@@ -26,18 +26,28 @@ import redis
 
 from wis2_grep.env import CACHE_URL, CACHE_RETENTION_SECONDS
 from wis2_grep.loader import Loader
+from wis2_grep.util import detect_message_type
 
 LOGGER = logging.getLogger(__name__)
 
 
-class NotificationMessageHook(Hook):
+class MessageHook(Hook):
     def execute(self, topic: str, msg_dict: dict) -> None:
-        LOGGER.debug('Notification message hook execution begin')
+        LOGGER.debug('Message hook execution begin')
         LOGGER.debug('Deduplicating message')
+
         self.cache = redis.Redis().from_url(CACHE_URL, protocol=2)
 
+        mtype = detect_message_type(msg_dict)
+
+        if mtype == 'wnm':
+            value = msg_dict['properties']['data_id']
+
+        elif mtype == 'wmem':
+            value = f"{msg_dict['source']}__{msg_dict['subject']}__{msg_dict['time']}"  # noqa
+
         result = self.cache.set(msg_dict['id'],
-                                msg_dict['properties']['data_id'],
+                                value,
                                 nx=True,
                                 ex=CACHE_RETENTION_SECONDS)
 
@@ -49,7 +59,7 @@ class NotificationMessageHook(Hook):
         LOGGER.debug('Loading message')
         loader = Loader()
         loader.load(msg_dict, topic)
-        LOGGER.debug('Notification message hook execution end')
+        LOGGER.debug('Message hook execution end')
 
     def __repr__(self):
-        return '<NotificationMessageHook>'
+        return '<MessageHook>'

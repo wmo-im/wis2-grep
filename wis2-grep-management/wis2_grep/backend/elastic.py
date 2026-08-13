@@ -59,8 +59,7 @@ class ElasticsearchBackend(BaseBackend):
             self.index_name = self.url_parsed.path.split('/')[-1]
             url2 = f'{url2}/{basepath}/'
 
-        self.index_basename = self.url_parsed.path.lstrip('/')
-        self.index_basename = self.index_basename.rstrip('.*')
+        self.index_basename = self.defs.get('index')
         self.ilm_lifecycle_policy_name = f'{self.index_basename}_policy'
         self.index_mappings = f'{self.index_basename}_mappings'
         self.index_basename = f'{self.index_basename}.'

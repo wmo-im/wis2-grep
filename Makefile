@@ -44,11 +44,13 @@ dev:
 list-backend-indices:
 	docker exec -ti wis2-grep-backend sh -c "curl -s http://localhost:9200/_cat/indices | sort"
 
-clean-backend:
-	docker exec -it wis2-grep-management sh -c "/venv/bin/wis2-grep clean"
+clean-backends:
+	docker exec -it wis2-grep-management sh -c "/venv/bin/wis2-grep clean wis2-notification-messages"
+	docker exec -it wis2-grep-management sh -c "/venv/bin/wis2-grep clean wis2-monitoring-event-messages"
 
-reinit-backend:
-	docker exec -it wis2-grep-management sh -c "/venv/bin/wis2-grep setup --force"
+reinit-backends:
+	docker exec -it wis2-grep-management sh -c "/venv/bin/wis2-grep setup wis2-notification-messages --force"
+	docker exec -it wis2-grep-management sh -c "/venv/bin/wis2-grep setup wis2-monitoring-event-messages --force"
 
 list-cache-objects:
 	docker exec -it wis2-grep-cache sh -c "redis-cli DBSIZE"
