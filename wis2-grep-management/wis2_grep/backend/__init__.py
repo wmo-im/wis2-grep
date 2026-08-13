@@ -20,10 +20,8 @@
 ###############################################################################
 
 from wis2_grep.backend.elastic import ElasticsearchBackend
-from wis2_grep.backend.ogcapi_features import OGCAPIFeaturesBackend
 
 
 BACKENDS = {
-    'Elasticsearch': ElasticsearchBackend,
-    'OGCAPIFeatures': OGCAPIFeaturesBackend
+    'Elasticsearch': ElasticsearchBackend
 }

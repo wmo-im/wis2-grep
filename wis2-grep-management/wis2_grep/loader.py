@@ -33,6 +33,7 @@ from wis2_grep.backend import BACKENDS
 from wis2_grep.env import (BACKEND_TYPE, BACKEND_CONNECTION, BROKER_URL,
                            CENTRE_ID, INCLUDE_GATEWAYS,
                            MESSAGE_RETENTION_HOURS)
+from wis2_grep.util import detect_message_type
 
 LOGGER = logging.getLogger(__name__)
 
@@ -45,8 +46,8 @@ class Loader:
         :returns: `wis2_grep.loader.Loader`
         """
 
-        self.backend = BACKENDS[BACKEND_TYPE](
-                    {'connection': BACKEND_CONNECTION})
+        self.index = None
+        self.backend = None
 
     def load(self, message: Union[dict, str], topic: str = None) -> None:
         """
@@ -74,11 +75,26 @@ class Loader:
             return
 
         LOGGER.debug('Adding topic to message')
-        self.message['properties']['topic'] = topic
+        mtype = detect_message_type(self.message)
+
+        if mtype == 'wnm':
+            self.index = 'wis2-notification-messages'
+            self.message['properties']['topic'] = topic
+        elif mtype == 'wmem':
+            self.index = 'wis2-monitoring-event-messages'
+            self.message['topic'] = topic
+            self.message['properties'] = {
+                'topic': topic
+            }
 
         LOGGER.debug(f'Notification message: {json.dumps(self.message, indent=4)}')  # noqa
 
         LOGGER.info('Publishing notification message to backend')
+        LOGGER.debug('Initializing backend')
+        backend_defs = {'connection': BACKEND_CONNECTION, 'index': self.index}
+        self.backend = BACKENDS[BACKEND_TYPE](backend_defs)
+        LOGGER.debug(f'Backend: {self.backend}')
+
         self._publish()
         self._publish_metrics(topic)
 
@@ -120,15 +136,17 @@ class Loader:
 
 @click.command()
 @click.pass_context
+@click.argument('index')
 @click.option('--force', '-f', 'force', is_flag=True, default=False,
               help='Force reinitialization of backend')
 @click.option('--yes', '-y', 'bypass', is_flag=True, default=False,
               help='Bypass permission prompts')
 @cli_options.OPTION_VERBOSITY
-def setup(ctx, force, bypass, verbosity='NOTSET'):
+def setup(ctx, index, force, bypass, verbosity='NOTSET'):
     """Create Global Replay Service backend"""
 
-    backend = BACKENDS[BACKEND_TYPE]({'connection': BACKEND_CONNECTION})
+    backend_defs = {'connection': BACKEND_CONNECTION, 'index': index}
+    backend = BACKENDS[BACKEND_TYPE](backend_defs)
     LOGGER.debug(f'Backend: {backend}')
 
     if backend.exists():
@@ -160,51 +178,57 @@ def setup(ctx, force, bypass, verbosity='NOTSET'):
 
 @click.command()
 @click.pass_context
+@click.argument('index')
 @click.option('--yes', '-y', 'bypass', is_flag=True, default=False,
               help='Bypass permission prompts')
 @cli_options.OPTION_VERBOSITY
-def teardown(ctx, bypass, verbosity='NOTSET'):
+def teardown(ctx, index, bypass, verbosity='NOTSET'):
     """Delete Global Replay Service backend"""
 
     if not bypass:
-        if not click.confirm('Delete Global Replay Service backend?  This will remove existing collections', abort=True):  # noqa
+        if not click.confirm('Delete Global Replay Service backend?  This will remove index {index}', abort=True):  # noqa
             return
 
-    backend = BACKENDS[BACKEND_TYPE]({'connection': BACKEND_CONNECTION})
+    backend_defs = {'connection': BACKEND_CONNECTION, 'index': index}
+    backend = BACKENDS[BACKEND_TYPE](backend_defs)
     LOGGER.debug(f'Backend: {backend}')
     backend.teardown()
 
 
 @click.command()
 @click.pass_context
+@click.argument('index')
 @cli_options.OPTION_VERBOSITY
-def get_retention(ctx, verbosity='NOTSET'):
+def get_retention(ctx, index, verbosity='NOTSET'):
     """Get current retention settings"""
 
-    backend = BACKENDS[BACKEND_TYPE]({'connection': BACKEND_CONNECTION})
+    backend_defs = {'connection': BACKEND_CONNECTION, 'index': index}
+    backend = BACKENDS[BACKEND_TYPE](backend_defs)
     LOGGER.debug(f'Backend: {backend}')
 
     retention = backend.get_retention()
 
-    click.echo(f'Retention is currently set to {retention} hours')
+    click.echo(f'Retention is currently set to {retention} hours for index {index}')  # noqa
 
     click.echo('Done')
 
 
 @click.command()
 @click.pass_context
+@click.argument('index')
 @click.argument('hours', type=int)
 @cli_options.OPTION_VERBOSITY
-def set_retention(ctx, hours, verbosity='NOTSET'):
+def set_retention(ctx, index, hours, verbosity='NOTSET'):
     """Get current retention settings"""
 
-    backend = BACKENDS[BACKEND_TYPE]({'connection': BACKEND_CONNECTION})
+    backend_defs = {'connection': BACKEND_CONNECTION, 'index': index}
+    backend = BACKENDS[BACKEND_TYPE](backend_defs)
     LOGGER.debug(f'Backend: {backend}')
 
-    click.echo(f'Setting retention to {hours} hours')
+    click.echo(f'Setting retention to {hours} hours on index {index}')
 
     backend.set_retention(hours)
-    ctx.invoke(get_retention)
+    ctx.invoke(get_retention, [index])
 
 
 @click.command()
@@ -231,10 +255,11 @@ def load(ctx, path, verbosity='NOTSET'):
 
 @click.command()
 @click.pass_context
+@click.argument('index')
 @click.option('--hours', type=int, default=MESSAGE_RETENTION_HOURS,
               help='Number of hours of messages to keep')
 @cli_options.OPTION_VERBOSITY
-def clean(ctx, hours, verbosity):
+def clean(ctx, index, hours, verbosity):
     """Clean messages on API indexes"""
 
     hours_ = hours or MESSAGE_RETENTION_HOURS
@@ -242,7 +267,8 @@ def clean(ctx, hours, verbosity):
     if hours_ is None or hours_ < 0:
         click.echo('No data retention set. Skipping')
     else:
-        backend = BACKENDS[BACKEND_TYPE]({'connection': BACKEND_CONNECTION})
+        backend_defs = {'connection': BACKEND_CONNECTION, 'index': index}
+        backend = BACKENDS[BACKEND_TYPE](backend_defs)
         LOGGER.debug(f'Backend: {backend}')
         backend.clean(hours_)
 

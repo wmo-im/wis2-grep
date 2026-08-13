@@ -20,42 +20,25 @@
 ###############################################################################
 
 import logging
-import json
-
-from owslib.ogcapi.features import Features
-
-from wis2_grep import env
-from wis2_grep.backend.base import BaseBackend
 
 LOGGER = logging.getLogger(__name__)
 
 
-class OGCAPIFeaturesBackend(BaseBackend):
+def detect_message_type(msg_dict: dict) -> str:
+    """
+    Helper function to detect a message type
 
-    def __init__(self, defs):
-        super().__init__(defs)
+    :param msg_dict: `dict` of message
 
-        self.conn = Features(env.API_URL)
-        self.collection = 'notification-messsages'
+    :returns: `str` of message type (wnm or wmem)
 
-    def save(self):
+    """
 
-        ttype = 'create'
+    mtype = None
 
-        try:
-            _ = self.conn.get_collection_item(self.metadata['id'])
-            ttype = 'update'
-        except Exception:
-            pass
+    if 'http://wis.wmo.int/spec/wnm/1/conf/core' in msg_dict.get('conformsTo', []):  # noqa
+        mtype = 'wnm'
+    elif 'http://wis.wmo.int/spec/wme/1/conf/monitoring-event-message-core' in msg_dict.get('data', {}).get('conformsTo', []):  # noqa
+        mtype = 'wmem'
 
-        payload = json.dumps(self.metadata)
-
-        if ttype == 'create':
-            LOGGER.debug('Adding new notification to collection')
-            _ = self.conn.get_collection_create(self.collection, payload)
-        elif ttype == 'update':
-            LOGGER.debug('Updating existing notification in collection')
-            _ = self.conn.get_collection_update(self.collection, payload)
-
-    def __repr__(self):
-        return '<OGCAPIFeaturesBackend>'
+    return mtype

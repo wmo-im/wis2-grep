@@ -30,7 +30,7 @@ __version__ = '0.1.dev0'
 @click.group()
 @click.version_option(version=__version__)
 def cli():
-    """WIS2 Replace Service management utilities"""
+    """WIS2 Global Replay management utilities"""
 
     pass
 

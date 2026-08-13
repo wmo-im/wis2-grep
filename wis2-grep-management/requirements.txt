@@ -1,3 +1,0 @@
-click
-pywis-pubsub
-redis[hiredis]

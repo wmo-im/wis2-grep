@@ -1,3 +1,49 @@
 [build-system]
 requires = ["setuptools>=46.4", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "wis2-grep"
+version = "0.1.dev0"
+description = "wis2-grep is a Reference Implementation of a WIS2 Global Replay Service"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+keywords = ["WIS2", "Global Replace Service", "notifications"]
+authors = [
+    {name = "Tom Kralidis", email = "tomkralidis@gmail.com"}
+]
+maintainers = [
+    {name = "Tom Kralidis", email = "tomkralidis@gmail.com"}
+]
+classifiers= [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python"
+]
+
+dependencies = [
+    "click",
+    "pywis-pubsub",
+    "redis[hiredis]"
+]
+
+[project.optional-dependencies]
+backend = ["elasticsearch<9"]
+dev = ["flake8", "twine", "wheel"]
+
+[project.scripts]
+wis2-grep = "wis2_grep:cli"
+
+[project.urls]
+homepage = "https://github.com/wmo-im/wis2-grep"
+source = "https://github.com/wmo-im/wis2-grep"
+documentation = "https://github.com/wmo-im/wis2-grep"
+issues = "https://github.com/wmo-im/wis2-grep/issues"
+
+[tool.setuptools.packages.find]
+exclude = ["docker", "Dockerfile"]

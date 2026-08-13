@@ -13,7 +13,6 @@ wis2-grep is a Reference Implementation of a WIS2 Global Replay Service.
 - on notification messages
   - check for message duplication
   - publish to a WIS2 Global Replay Service (OGC API - Features) using one of the supported transaction backends:
-    - [OGC API - Features - Part 4: Create, Replace, Update and Delete](https://docs.ogc.org/DRAFTS/20-002.html)
     - Elasticsearch direct (default)
 - user-defined subscriptions
   - users can execute a process to subscribe to notification messages based on topic and/or datetime
@@ -52,20 +51,25 @@ source local.env
 # setup pywis-pubsub - sync WIS2 notification schema
 pywis-pubsub schema sync
 
-# setup backend
-wis2-grep setup
+# setup backends
+wis2-grep setup wis2-notification-messages
+wis2-grep setup wis2-monitoring-event-messages
 
-# setup backend (force reinitialization of backend)
-wis2-grep setup --force
+# setup backends (force reinitialization of backends)
+wis2-grep setup wis2-notification-messages --force
+wis2-grep setup wis2-monitoring-event-messages --force
 
-# teardown backend
-wis2-grep teardown
+# teardown backends
+wis2-grep teardown wis2-notification-messages
+wis2-grep teardown wis2-monitoring-event-messages
 
-# get retention policy
-wis2-grep get-retention
+# get retention policies
+wis2-grep get-retention wis2-notification-messages
+wis2-grep get-retention wis2-monitoring-event-messages
 
-# get/set retention policy (hours)
-wis2-grep set-retention 144
+# get/set retention policies (hours)
+wis2-grep set-retention wis2-notification-messages 24
+wis2-grep set-retention wis2-monitoring-event-messages 168
 
 # connect to Global Broker
 # notifications will automatically trigger wis2-grep to publish
@@ -73,13 +77,14 @@ wis2-grep set-retention 144
 pywis-pubsub subscribe --config pywis-pubsub.yml
 
 # loading notification messsage manually (single file)
-wis2-grep register /path/to/wnm-file.json
+wis2-grep load /path/to/wnm-or-wmem-file.json
 
 # loading notification messages manually (directory of .json files)
-wis2-grep load /path/to/dir/of/wnm-files
+wis2-grep load /path/to/dir/of/wnm-or-wmem-files
 
-# manually clean messages from API index
-wis2-grep clean --hours 24
+# manually clean messages from API indexes
+wis2-grep clean wis2-notification-messages --hours 24
+wis2-grep clean wis2-monitoring-event-messages --hours 24
 ```
 
 ### Docker
@@ -88,7 +93,7 @@ The Docker setup uses Docker and Docker Compose to manage the following services
 
 - **wis2-grep-api**: API powered by [pygeoapi](https://pygeoapi.io)
 - **wis2-grep-broker**: MQTT broker
-- **wis2-grep-management**: management service to publish notification messages published from a WIS2 Global Broker instance
+- **wis2-grep-management**: management service to publish notification and monitoring event messages published from a WIS2 Global Broker instance
   - the default Global Broker connection is to NOAA.  This can be modified in `wis2-grep.env` to point to a different Global Broker
 - **wis2-grep-backend**: API search engine backend (default Elasticsearch)
 - **wis2-grep-cache**: message cache (default Redis)
@@ -110,14 +115,14 @@ make force-build
 
 # start all containers
 make up
-# API is up at http://localhost
+# API is up at http://localhost:8000
 
 # reinitialize backend
 make reinit-backend
 
 # start all containers in dev mode
 make dev
-# API is up at http://localhost
+# API is up at http://localhost:8000
 
 # view all container logs in realtime
 make logs
@@ -139,51 +144,75 @@ make rm
 
 ```bash
 
+
+## WIS2 notification messages
+
 # by topic
-curl "http://localhost/collections/wis2-notification-messages/items?q=%22cache/b/wis2%22"
+curl "http://localhost:8000/collections/wis2-notification-messages/items?q=%22cache/a/wis2%22"
 
 # by bounding box (Canada):
-curl "http://localhost/collections/wis2-notification-messages/items?bbox=-142,42,-5,84"
+curl "http://localhost:8000
+/collections/wis2-notification-messages/items?bbox=-142,42,-5,84"
 
 # by publication time (from/to):
-curl "http://localhost/collections/wis2-notification-messages/items?datetime=2024-07-24T11:11:11Z/2024-07-25T12:34:21Z"
+curl "http://localhost:8000/collections/wis2-notification-messages/items?datetime=2024-07-24T11:11:11Z/2024-07-25T12:34:21Z"
 
 # by publication time (from):
-curl "http://localhost/collections/wis2-notification-messages/items?datetime=2024-07-24T11:11:11Z/.."
+curl "http://localhost:8000/collections/wis2-notification-messages/items?datetime=2024-07-24T11:11:11Z/.."
 
 # by publication time (to):
-curl "http://localhost/collections/wis2-notification-messages/items?datetime=../2024-07-24T11:11:11Z"
+curl "http://localhost:8000/collections/wis2-notification-messages/items?datetime=../2024-07-24T11:11:11Z"
 
 # by message identifier
-curl "http://localhost/collections/wis2-notification-messages/items/<WNM_ID>"
+curl "http://localhost:8000/collections/wis2-notification-messages/items/<WNM_ID>"
 
 # sort results by oldest messages (pubtime)
-curl "http://localhost/collections/wis2-notification-messages/items?sortby=pubtime"
+curl "http://localhost:8000/collections/wis2-notification-messages/items?sortby=pubtime"
 
 # sort results by latest messages (pubtime)
-curl "http://localhost/collections/wis2-notification-messages/items?sortby=-pubtime"
+curl "http://localhost:8000/collections/wis2-notification-messages/items?sortby=-pubtime"
 
 # return as GeoJSON
-curl "http://localhost/collections/wis2-notification-messages/items?f=json"
+curl "http://localhost:8000/collections/wis2-notification-messages/items?f=json"
 
 # return as HTML
-curl "http://localhost/collections/wis2-notification-messages/items?f=html"
+curl "http://localhost:8000/collections/wis2-notification-messages/items?f=html"
+
+## WIS2 monitoring event messages
+
+# by topic
+curl "http://localhost:8000/collections/wis2-monitoring-event-messages/items?q=%22monitor/b/wis2/ca-eccc-msc%22"
+
+# by publication time (from/to):
+curl "http://localhost:8000/collections/wis2-monitoring-event-messages/items?datetime=2024-07-24T11:11:11Z/2024-07-25T12:34:21Z"
+
+# by publication time (from):
+curl "http://localhost:8000/collections/wis2-monitoring-event-messages/items?datetime=2024-07-24T11:11:11Z/.."
+
+# by publication time (to):
+curl "http://localhost:8000/collections/wis2-monitoring-event-messages/items?datetime=../2024-07-24T11:11:11Z"
+
+# by message identifier
+curl "http://localhost:8000/collections/wis2-monitoring-event-messages/items/<WME_ID>"
+
+# sort results by oldest messages (pubtime)
+curl "http://localhost:8000/collections/wis2-monitoring-event-messages/items?sortby=time"
+
+# sort results by latest messages (pubtime)
+curl "http://localhost:8000/collections/wis2-monitoring-event-messages/items?sortby=-time"
+
+# return as GeoJSON
+curl "http://localhost:8000/collections/wis2-monitoring-event-messages/items?f=json"
+
+# return as HTML
+curl "http://localhost:8000/collections/wis2-monitoring-event-messages/items?f=html"
 ```
 
 ## Development
 
 ### Running Tests
 
-```bash
-# install dev requirements
-pip3 install -r requirements-dev.txt
-
-# run tests like this:
-python3 tests/run_tests.py
-
-# or this:
-python3 setup.py test
-```
+TODO
 
 ### Code Conventions
 

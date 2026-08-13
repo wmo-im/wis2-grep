@@ -29,10 +29,11 @@ sudo sh -c 'cat /tmp/environment >> /etc/environment'
 rm -f /tmp/environment
 
 echo "Caching WNM schema"
-/venv/bin/pywis-pubsub schema sync
+/venv/bin/pywis-pubsub bundle sync
 
-echo "Setting up notification message backend"
-/venv/bin/wis2-grep setup -y
+echo "Setting up message backends"
+/venv/bin/wis2-grep setup wis2-notification-messages -y
+/venv/bin/wis2-grep setup wis2-monitoring-event-messages -y
 
 echo "END /entrypoint.sh"
 exec "$@"

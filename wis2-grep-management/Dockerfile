@@ -35,10 +35,10 @@ RUN apt-get update -y && \
     # install dependencies
     apt-get install -y ${DEBIAN_PACKAGES} && \
     python3 -m venv --system-site-packages /venv && \
-    /venv/bin/pip3 install --no-cache-dir -r /app/requirements-backend.txt && \
     # install wis2-grep
     cd /app && \
     /venv/bin/pip3 install -e . && \
+    /venv/bin/pip3 install -e ".[backend]" && \
     chmod +x /app/docker/entrypoint.sh && \
     # cleanup
     apt autoremove -y && \
