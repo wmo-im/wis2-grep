@@ -48,8 +48,8 @@ vim local.env # update accordingly
 
 source local.env
 
-# setup pywis-pubsub - sync WIS2 notification schema
-pywis-pubsub schema sync
+# setup pywis-pubsub - sync schemas and codelists bundle
+pywis-pubsub bundle sync
 
 # setup backends
 wis2-grep setup wis2-notification-messages
