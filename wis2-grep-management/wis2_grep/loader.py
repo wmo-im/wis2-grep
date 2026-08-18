@@ -228,7 +228,7 @@ def set_retention(ctx, index, hours, verbosity='NOTSET'):
     click.echo(f'Setting retention to {hours} hours on index {index}')
 
     backend.set_retention(hours)
-    ctx.invoke(get_retention, [index])
+    ctx.invoke(get_retention, index=index)
 
 
 @click.command()

@@ -34,6 +34,8 @@ echo "Caching WNM schema"
 echo "Setting up message backends"
 /venv/bin/wis2-grep setup wis2-notification-messages -y
 /venv/bin/wis2-grep setup wis2-monitoring-event-messages -y
+/venv/bin/wis2-grep set-retention wis2-notification-messages 24
+/venv/bin/wis2-grep set-retention wis2-monitoring-event-messages 168
 
 echo "END /entrypoint.sh"
 exec "$@"
