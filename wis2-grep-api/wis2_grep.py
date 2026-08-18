@@ -2,7 +2,7 @@
 #
 # Authors: Tom Kralidis <tomkralidis@gmail.com>
 #
-# Copyright (c) 2024 Tom Kralidis
+# Copyright (c) 2026 Tom Kralidis
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -42,8 +42,10 @@ from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 API_URL_DOCKER = os.environ['WIS2_GREP_API_URL_DOCKER']
 BROKER_URL = urlparse(os.environ['WIS2_GREP_BROKER_URL'])
 CENTRE_ID = os.environ['WIS2_GREP_CENTRE_ID']
-
-API_ENDPOINT = f'{API_URL_DOCKER}/collections/wis2-notification-messages/items'
+COLLECTIONS = [
+    'wis2-notification-messages',
+    'wis2-monitoring-event-messages'
+]
 
 LOGGER = logging.getLogger(__name__)
 
@@ -89,6 +91,19 @@ PROCESS_METADATA = {
         'hreflang': 'en-US'
     }],
     'inputs': {
+        'collection': {
+            'title': 'Collection',
+            'description': 'Collection to subscribe to',
+            'schema': {
+                'type': 'string',
+                'enum': COLLECTIONS,
+                'example': 'wis2-notification-messages',
+                'default': 'wis2-notification-messages'
+            },
+            'minOccurs': 0,
+            'maxOccurs': 1,
+            'keywords': ['collection']
+        },
         'topic': {
             'title': 'Topic',
             'description': 'Topic to subscribe to',
@@ -111,18 +126,6 @@ PROCESS_METADATA = {
             'minOccurs': 1,
             'maxOccurs': 1,
             'keywords': ['datetime', 'rfc3339']
-        },
-        'sortby': {
-            'title': 'sortby',
-            'description': 'Property name to sort by and order',
-            'schema': {
-                'type': 'string',
-                'default': '-pubtime',
-                'example': '-pubtime'
-            },
-            'minOccurs': 0,
-            'maxOccurs': 1,
-            'keywords': ['sortby']
         },
         'subscriber-id': {
             'title': 'Subscriber id',
@@ -192,9 +195,9 @@ PROCESS_METADATA = {
     },
     'example': {
         'inputs': {
+            'collection': 'wis2-notification-messages',
             'topic': 'cache/a/wis2/fr-meteofrance',
             'datetime': f'{TWO_HOURS_AGO}/{NOW}',
-            'sortby': '-pubtime',
             'subscriber-id': EXAMPLE_UUID
         }
     }
@@ -217,13 +220,15 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
         self.supports_outputs = True
 
     def execute(self, data, outputs=None):
+        collection = data.get('collection', 'wis2-notification-messages')
         datetime_ = data.get('datetime')
         topic = data.get('topic')
-        sortby = data.get('sortby', '-pubtime')
         subscriber_id = data.get('subscriber-id')
 
-        LOGGER.debug('Sanitizing topic')
-        api_topic = topic.replace('/#', '').replace('+', '*')
+        if collection not in COLLECTIONS:
+            msg = f'invalid collection specified: must be one of {COLLECTIONS}'
+            LOGGER.error(msg)
+            raise ProcessorExecuteError(msg)
 
         if None in [datetime_, topic, subscriber_id]:
             msg = 'datetime/topic/subscriber-id required'
@@ -234,6 +239,9 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
             msg = 'topic level minimum of centre-id required'
             LOGGER.error(msg)
             raise ProcessorExecuteError(msg)
+
+        LOGGER.debug('Sanitizing topic')
+        api_topic = topic.replace('/#', '').replace('+', '*')
 
         try:
             LOGGER.debug('Validating subscriber-id')
@@ -247,13 +255,12 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
         api_params = {
             'datetime': datetime_,
             'topic': api_topic,
-            'sortby': sortby,
             'limit': 100000
         }
 
         LOGGER.debug('Sending API query to thread')
         t = threading.Thread(target=self._get_messages,
-                             args=(api_params, pub_topic))
+                             args=(collection, api_params, pub_topic))
         t.start()
 
         outputs['status'] = 'successful'
@@ -270,10 +277,12 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
 
         return 'application/json', outputs
 
-    def _get_messages(self, api_params, pub_topic) -> None:
+    def _get_messages(self, collection: str, api_params: dict,
+                      pub_topic: str) -> None:
         """
         Utility to fetch all messages from API
 
+        :param collection: `str` of collection identifier
         :param api_params: `dict` of API query parameters
         :param pub_topic: `str` of publication topic
 
@@ -286,14 +295,16 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
 
         client.connect(BROKER_URL.hostname, BROKER_URL.port, 60)
 
+        url = f'{API_URL_DOCKER}/collections/{collection}/items'
+
         next_link = None
 
         while True:
             found_next_link = False
             try:
                 if next_link is None:
-                    LOGGER.debug(f'Querying API with {api_params}')
-                    r = requests.get(API_ENDPOINT, params=api_params)
+                    LOGGER.debug(f'Querying API {url} with {api_params}')
+                    r = requests.get(url, params=api_params)
                 else:
                     LOGGER.debug(f'Querying API with {next_link}')
                     r = requests.get(next_link)
