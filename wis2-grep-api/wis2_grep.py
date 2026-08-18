@@ -241,7 +241,7 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
             raise ProcessorExecuteError(msg)
 
         LOGGER.debug('Sanitizing topic')
-        api_topic = topic.replace('/#', '').replace('+', '*')
+        api_topic = topic.replace('/#', '').replace('+', '*').rstrip('/')
 
         try:
             LOGGER.debug('Validating subscriber-id')
