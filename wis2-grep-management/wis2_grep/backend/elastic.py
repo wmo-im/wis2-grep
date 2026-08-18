@@ -68,6 +68,22 @@ class ElasticsearchBackend(BaseBackend):
         LOGGER.debug(f'ES index basename: {self.index_basename}')
 
         self.ES_MAPPINGS = {
+            'settings': {
+                'analysis': {
+                    'tokenizer': {
+                        'topic_path': {
+                            'type': 'path_hierarchy',
+                            'delimiter': '/'
+                        }
+                    },
+                    'analyzer': {
+                        'topic_hierarchy': {
+                            'type': 'custom',
+                            'tokenizer': 'topic_path'
+                        }
+                    }
+                }
+            },
             'mappings': {
                 'properties': {
                     'id': {
@@ -80,6 +96,15 @@ class ElasticsearchBackend(BaseBackend):
                     },
                     'geometry': {
                         'type': 'geo_shape'
+                    },
+                    'properties': {
+                        'properties': {
+                            'topic': {
+                                'type': 'text',
+                                'analyzer': 'topic_hierarchy',
+                                'search_analyzer': 'keyword'
+                            }
+                        }
                     }
                 }
             }
@@ -144,6 +169,11 @@ class ElasticsearchBackend(BaseBackend):
         LOGGER.debug(f'Creating index template {self.index_basename}')
         self.es.indices.put_index_template(name=self.index_basename,
                                            body=self.ES_SETTINGS)
+
+        now = datetime.now(UTC).strftime('%Y-%m-%d-%H')
+        empty_index = f'{self.index_basename}{now}'
+        LOGGER.debug(f'Creating empty index {empty_index}')
+        self.es.indices.create(index=empty_index)
 
     def teardown(self) -> None:
         LOGGER.debug(f'Deleting indexes of template {self.index_basename}')
