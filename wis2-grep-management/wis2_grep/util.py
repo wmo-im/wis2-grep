@@ -31,14 +31,22 @@ def detect_message_type(msg_dict: dict) -> str:
     :param msg_dict: `dict` of message
 
     :returns: `str` of message type (wnm or wmem)
-
     """
 
     mtype = None
 
-    if 'http://wis.wmo.int/spec/wnm/1/conf/core' in msg_dict.get('conformsTo', []):  # noqa
-        mtype = 'wnm'
-    elif 'http://wis.wmo.int/spec/wme/1/conf/monitoring-event-message-core' in msg_dict.get('data', {}).get('conformsTo', []):  # noqa
-        mtype = 'wmem'
+    wnm_uri = 'http://wis.wmo.int/spec/wnm/1/conf/core'
+    wmem_uri = 'http://wis.wmo.int/spec/wme/1/conf/monitoring-event-message-core'  # noqa
+
+    if 'conformsTo' in msg_dict:
+        if wnm_uri in msg_dict['conformsTo']:
+            mtype = 'wnm'
+    # TODO: deprecated, remove version check after INFCOM-4 grace period
+    elif 'version' in msg_dict:
+        if msg_dict['version'] == 'v04':
+            mtype = 'wnm'
+    elif 'conformsTo' in msg_dict.get('data', {}):
+        if wmem_uri in msg_dict['data']['conformsTo']:
+            mtype = 'wmem'
 
     return mtype
