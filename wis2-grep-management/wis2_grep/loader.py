@@ -70,8 +70,10 @@ class Loader:
                 LOGGER.warning(err)
                 return
 
-        if topic.endswith('gts-to-wis2') and not INCLUDE_GATEWAYS:
-            LOGGER.debug('Filtering out gateway messages')
+        centre_id = topic.split('/')[3]
+        if centre_id.endswith('-gts-to-wis2') and not INCLUDE_GATEWAYS:
+            msg = 'Discarding GTS to WIS2 Gateway messages from {centre_id}'
+            LOGGER.debug(msg)
             return
 
         LOGGER.debug('Adding topic to message')
