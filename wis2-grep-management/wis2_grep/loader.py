@@ -87,7 +87,7 @@ class Loader:
             self.message['topic'] = topic
             self.message['properties'] = {
                 'topic': topic,
-                'time'': self.message['time']
+                'time': self.message['time']
             }
 
         LOGGER.debug(f'Notification message: {json.dumps(self.message, indent=4)}')  # noqa
