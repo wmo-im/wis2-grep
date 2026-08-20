@@ -30,13 +30,13 @@ from wis2_grep.util import detect_message_type
 
 LOGGER = logging.getLogger(__name__)
 
+CACHE_CLIENT = redis.Redis().from_url(CACHE_URL, protocol=2)
+
 
 class MessageHook(Hook):
     def execute(self, topic: str, msg_dict: dict) -> None:
         LOGGER.debug('Message hook execution begin')
         LOGGER.debug('Deduplicating message')
-
-        self.cache = redis.Redis().from_url(CACHE_URL, protocol=2)
 
         mtype = detect_message_type(msg_dict)
 
@@ -46,10 +46,10 @@ class MessageHook(Hook):
         elif mtype == 'wmem':
             value = f"{msg_dict['source']}__{msg_dict['subject']}__{msg_dict['time']}"  # noqa
 
-        result = self.cache.set(msg_dict['id'],
-                                value,
-                                nx=True,
-                                ex=CACHE_RETENTION_SECONDS)
+        result = CACHE_CLIENT.set(msg_dict['id'],
+                                  value,
+                                  nx=True,
+                                  ex=CACHE_RETENTION_SECONDS)
 
         if result:
             LOGGER.info(f"New message {msg_dict['id']}; added")

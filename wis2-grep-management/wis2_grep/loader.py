@@ -37,6 +37,8 @@ from wis2_grep.util import detect_message_type
 
 LOGGER = logging.getLogger(__name__)
 
+METRICS_PUBSUB_CLIENT = MQTTPubSubClient(BROKER_URL)
+
 
 class Loader:
     def __init__(self):
@@ -121,7 +123,6 @@ class Loader:
         :returns: `None`
         """
 
-        m = MQTTPubSubClient(BROKER_URL)
         message = {
             'labels': [
                 topic.split('/')[3],
@@ -131,7 +132,7 @@ class Loader:
         }
 
         publish_metrics_topic = 'wis2-grep/metrics/messages_processed_total'
-        m.pub(publish_metrics_topic, json.dumps(message))
+        METRICS_PUBSUB_CLIENT.pub(publish_metrics_topic, json.dumps(message))
 
     def __repr__(self):
         return '<Loader>'
