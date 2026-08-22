@@ -39,6 +39,16 @@ LOGGER = logging.getLogger(__name__)
 
 METRICS_PUBSUB_CLIENT = MQTTPubSubClient(BROKER_URL)
 
+WNM_BACKEND = BACKENDS[BACKEND_TYPE]({
+    'connection': BACKEND_CONNECTION,
+    'index': 'wis2-notification-messages'
+})
+
+WME_BACKEND = BACKENDS[BACKEND_TYPE]({
+    'connection': BACKEND_CONNECTION,
+    'index': 'wis2-monitoring-event-messages'
+})
+
 
 class Loader:
     def __init__(self):
@@ -84,6 +94,7 @@ class Loader:
         if mtype == 'wnm':
             self.index = 'wis2-notification-messages'
             self.message['properties']['topic'] = topic
+            self.backend = WNM_BACKEND
         elif mtype == 'wmem':
             self.index = 'wis2-monitoring-event-messages'
             self.message['topic'] = topic
@@ -91,13 +102,11 @@ class Loader:
                 'topic': topic,
                 'time': self.message['time']
             }
+            self.backend = WME_BACKEND
 
-        LOGGER.debug(f'Notification message: {json.dumps(self.message, indent=4)}')  # noqa
+        LOGGER.debug(f'Notification message: {self.message}')
 
         LOGGER.info('Publishing notification message to backend')
-        LOGGER.debug('Initializing backend')
-        backend_defs = {'connection': BACKEND_CONNECTION, 'index': self.index}
-        self.backend = BACKENDS[BACKEND_TYPE](backend_defs)
         LOGGER.debug(f'Backend: {self.backend}')
 
         self._publish()
@@ -246,13 +255,13 @@ def load(ctx, path, verbosity='NOTSET'):
     p = Path(path)
 
     if p.is_file():
-        wnms_to_process = [p]
+        messages_to_process = [p]
     else:
-        wnms_to_process = p.rglob('*.json')
+        messages_to_process = p.rglob('*.json')
 
-    for w2p in wnms_to_process:
-        click.echo(f'Processing {w2p}')
-        with w2p.open() as fh:
+    for m2p in messages_to_process:
+        click.echo(f'Processing {m2p}')
+        with m2p.open() as fh:
             r = Loader()
             r.load(fh.read())
 
