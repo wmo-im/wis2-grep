@@ -103,6 +103,10 @@ class Loader:
                 'time': self.message['time']
             }
             self.backend = WME_BACKEND
+        else:
+            msg = f'Unknown message type {mtype}; message: {self.message}'
+            LOGGER.warning(msg)
+            return
 
         LOGGER.debug(f'Notification message: {self.message}')
 
