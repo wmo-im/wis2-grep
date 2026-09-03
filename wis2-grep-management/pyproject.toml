@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wis2-grep"
-version = "0.1.dev0"
+version = "0.1.0"
 description = "wis2-grep is a Reference Implementation of a WIS2 Global Replay Service"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-keywords = ["WIS2", "Global Replace Service", "notifications"]
+keywords = ["WIS2", "Global Replay", "GRep", "notifications"]
 authors = [
     {name = "Tom Kralidis", email = "tomkralidis@gmail.com"}
 ]
