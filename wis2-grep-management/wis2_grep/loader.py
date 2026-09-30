@@ -23,6 +23,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Union
+import uuid
 
 import click
 
@@ -108,6 +109,8 @@ class Loader:
             LOGGER.warning(msg)
             return
 
+        LOGGER.debug('Assigning new id')
+        self.message['id'] = str(uuid.uuid4())
         LOGGER.debug(f'Notification message: {self.message}')
 
         LOGGER.info('Publishing notification message to backend')
