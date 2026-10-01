@@ -60,13 +60,12 @@ class MessageHook(Hook):
                                   ex=CACHE_RETENTION_SECONDS)
 
         if result:
-            LOGGER.info(f"New message {msg_dict['id']}; added")
+            LOGGER.info(f"New message {msg_dict['id']}; adding")
+            loader = Loader()
+            loader.load(msg_dict, topic)
         else:
-            LOGGER.info(f"Duplicate message {msg_dict['id']}")
+            LOGGER.info(f"Duplicate message {msg_dict['id']}; skipping")
 
-        LOGGER.debug('Loading message')
-        loader = Loader()
-        loader.load(msg_dict, topic)
         LOGGER.debug('Message hook execution end')
 
     def __repr__(self):
