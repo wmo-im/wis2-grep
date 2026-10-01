@@ -19,22 +19,30 @@
 #
 ###############################################################################
 
+from concurrent.futures import ThreadPoolExecutor
 import logging
 
 from pywis_pubsub.hook import Hook
 import redis
 
-from wis2_grep.env import CACHE_URL, CACHE_RETENTION_SECONDS
+from wis2_grep.env import (CACHE_URL, CACHE_RETENTION_SECONDS,
+                           MANAGEMENT_WORKERS)
 from wis2_grep.loader import Loader
 from wis2_grep.util import detect_message_type
 
+EXECUTOR = ThreadPoolExecutor(max_workers=MANAGEMENT_WORKERS)
+
 LOGGER = logging.getLogger(__name__)
 
-CACHE_CLIENT = redis.Redis().from_url(CACHE_URL, protocol=2)
+CACHE_POOL = redis.ConnectionPool.from_url(CACHE_URL, protocol=2)
+CACHE_CLIENT = redis.Redis(connection_pool=CACHE_POOL)
 
 
 class MessageHook(Hook):
     def execute(self, topic: str, msg_dict: dict) -> None:
+        EXECUTOR.submit(self._execute, topic, msg_dict)
+
+    def _execute(self, topic: str, msg_dict: dict) -> None:
         LOGGER.debug('Message hook execution begin')
         LOGGER.debug('Deduplicating message')
 
@@ -52,13 +60,12 @@ class MessageHook(Hook):
                                   ex=CACHE_RETENTION_SECONDS)
 
         if result:
-            LOGGER.info(f"New message {msg_dict['id']}; added")
+            LOGGER.info(f"New message {msg_dict['id']}; adding")
+            loader = Loader()
+            loader.load(msg_dict, topic)
         else:
-            LOGGER.info(f"Duplicate message {msg_dict['id']}")
+            LOGGER.info(f"Duplicate message {msg_dict['id']}; skipping")
 
-        LOGGER.debug('Loading message')
-        loader = Loader()
-        loader.load(msg_dict, topic)
         LOGGER.debug('Message hook execution end')
 
     def __repr__(self):
