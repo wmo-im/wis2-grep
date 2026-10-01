@@ -55,6 +55,8 @@ GB = os.environ.get('WIS2_GREP_GB')
 INCLUDE_GATEWAYS = str2bool(os.environ.get('WIS2_GREP_INCLUDE_GATEWAYS', False))  # noqa
 MESSAGE_RETENTION_HOURS = os.environ.get('WIS2_GREP_MESSAGE_RETENTION_HOURS',
                                          3)
+MANAGEMENT_WORKERS = int(os.environ.get('WIS2_GREP_MANAGEMENT_WORKERS',
+                         min(32, (os.cpu_count() or 1) * 4)))
 
 MESSAGE_RETENTION_HOURS = int(MESSAGE_RETENTION_HOURS)
 

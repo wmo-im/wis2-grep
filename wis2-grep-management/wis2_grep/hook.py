@@ -25,15 +25,17 @@ import logging
 from pywis_pubsub.hook import Hook
 import redis
 
-from wis2_grep.env import CACHE_URL, CACHE_RETENTION_SECONDS
+from wis2_grep.env import (CACHE_URL, CACHE_RETENTION_SECONDS,
+                           MANAGEMENT_WORKERS)
 from wis2_grep.loader import Loader
 from wis2_grep.util import detect_message_type
 
-EXECUTOR = ThreadPoolExecutor(max_workers=8)
+EXECUTOR = ThreadPoolExecutor(max_workers=MANAGEMENT_WORKERS)
 
 LOGGER = logging.getLogger(__name__)
 
-CACHE_CLIENT = redis.Redis().from_url(CACHE_URL, protocol=2)
+CACHE_POOL = redis.ConnectionPool.from_url(CACHE_URL, protocol=2)
+CACHE_CLIENT = redis.Redis(connection_pool=CACHE_POOL)
 
 
 class MessageHook(Hook):
