@@ -294,10 +294,13 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
         client.username_pw_set(BROKER_URL.username, BROKER_URL.password)
 
         client.connect(BROKER_URL.hostname, BROKER_URL.port, 60)
+        client.loop_start()
 
         url = f'{API_URL_DOCKER}/collections/{collection}/items'
 
         next_link = None
+        batch_size = 1000
+        pending = []
 
         while True:
             found_next_link = False
@@ -313,8 +316,24 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
                 r = r.json()
 
                 for feature in r['features']:
+                    feature['id'] = str(uuid.uuid4())
                     full_pub_topic = f'{pub_topic}/{feature['properties']['topic']}'  # noqa
-                    client.publish(full_pub_topic, json.dumps(feature))
+                    result = client.publish(
+                        full_pub_topic, json.dumps(feature), qos=1)
+
+                    if result.rc != mqtt.MQTT_ERR_SUCCESS:
+                        msg = f'MQTT publish failed for {full_pub_topic}: {mqtt.error_string(result.rc)}'  # noqa
+                        LOGGER.error(msg)
+
+                    pending.append(result)
+                    if len(pending) >= batch_size:
+                        for pending_info in pending:
+                            pending_info.wait_for_publish()
+
+                        pending.clear()
+
+                for pending_result in pending:
+                    pending_result.wait_for_publish()
 
                 for link in r['links']:
                     if 'next' in link:
@@ -327,7 +346,11 @@ class WIS2GrepSubscriberProcessor(BaseProcessor):
             except requests.exceptions.HTTPError as err:
                 LOGGER.error(err)
 
+        for p in pending:
+            p.wait_for_publish()
+
         client.disconnect()
+        client.loop_stop()
 
     def __repr__(self):
         return f'<WIS2GrepSubscriberProcessor> {self.name}'
