@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wis2-grep"
-version = "0.2.0"
+version = "0.3.dev0"
 description = "wis2-grep is a Reference Implementation of a WIS2 Global Replay Service"
 readme = "README.md"
 requires-python = ">=3.12"
