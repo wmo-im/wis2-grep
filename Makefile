@@ -62,7 +62,10 @@ clean:
 	docker system prune -f
 	docker volume prune -f
 
+ps:
+	docker compose $(DOCKER_COMPOSE_ARGS) ps --format "table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}\t{{.Name}}"
+
 rm:
 	docker volume rm $(shell docker volume ls --filter name=wis2-grep -q)
 
-.PHONY: build up dev login down restart list-backend-indices clean-backend reinit-backend list-cache-objects force-build logs rm clean
+.PHONY: build up dev login down restart list-backend-indices clean-backend reinit-backend list-cache-objects force-build logs rm clean ps
