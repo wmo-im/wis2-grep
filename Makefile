@@ -30,6 +30,10 @@ force-build:
 up:
 	docker compose $(DOCKER_COMPOSE_ARGS) up --detach
 
+traefik:
+	cp docker-compose.traefik.yml docker-compose.override.yml
+	docker compose $(DOCKER_COMPOSE_ARGS) up --detach
+
 down:
 	docker compose $(DOCKER_COMPOSE_ARGS) down
 
@@ -37,9 +41,6 @@ restart: down up
 
 login:
 	docker exec -it wis2-grep-management /bin/bash
-
-dev:
-	docker compose $(DOCKER_COMPOSE_ARGS) --file docker-compose.dev.yml up
 
 list-backend-indices:
 	docker exec -ti wis2-grep-backend sh -c "curl -s http://localhost:9200/_cat/indices | sort"
@@ -59,6 +60,7 @@ logs:
 	docker compose $(DOCKER_COMPOSE_ARGS) logs --follow
 
 clean:
+	git checkout docker-compose.override.yml
 	docker system prune -f
 	docker volume prune -f
 
@@ -68,4 +70,4 @@ ps:
 rm:
 	docker volume rm $(shell docker volume ls --filter name=wis2-grep -q)
 
-.PHONY: build up dev login down restart list-backend-indices clean-backend reinit-backend list-cache-objects force-build logs rm clean ps
+.PHONY: build up traefik login down restart list-backend-indices clean-backend reinit-backend list-cache-objects force-build logs rm clean ps
