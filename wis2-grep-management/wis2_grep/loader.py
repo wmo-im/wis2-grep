@@ -23,12 +23,13 @@ import json
 import logging
 from pathlib import Path
 from typing import Union
+from urllib.parse import urlparse
 import uuid
 
 import click
 
+import paho.mqtt.client as mqtt
 from pywis_pubsub import cli_options
-from pywis_pubsub.mqtt import MQTTPubSubClient
 
 from wis2_grep.backend import BACKENDS
 from wis2_grep.env import (BACKEND_TYPE, BACKEND_CONNECTION, BROKER_URL,
@@ -38,7 +39,14 @@ from wis2_grep.util import detect_message_type
 
 LOGGER = logging.getLogger(__name__)
 
-METRICS_PUBSUB_CLIENT = MQTTPubSubClient(BROKER_URL)
+BROKER_URL2 = urlparse(BROKER_URL)
+
+METRICS_PUBSUB_CLIENT = mqtt.Client()
+METRICS_PUBSUB_CLIENT.username_pw_set(BROKER_URL2.username,
+                                      BROKER_URL2.password)
+METRICS_PUBSUB_CLIENT.connect(BROKER_URL2.hostname, BROKER_URL2.port, 60)
+METRICS_PUBSUB_CLIENT.loop_start()
+
 
 WNM_BACKEND = BACKENDS[BACKEND_TYPE]({
     'connection': BACKEND_CONNECTION,
@@ -148,7 +156,16 @@ class Loader:
         }
 
         publish_metrics_topic = 'wis2-grep/metrics/messages_processed_total'
-        METRICS_PUBSUB_CLIENT.pub(publish_metrics_topic, json.dumps(message))
+        LOGGER.info(f'Publishing metric {publish_metrics_topic}: {message}')
+        result = METRICS_PUBSUB_CLIENT.publish(
+            publish_metrics_topic, json.dumps(message), qos=1)
+
+        if result.rc != mqtt.MQTT_ERR_SUCCESS:
+            msg = f'MQTT publish failed for {publish_metrics_topic}: {mqtt.error_string(result.rc)}'  # noqa
+            LOGGER.error(msg)
+
+        METRICS_PUBSUB_CLIENT.wait_for_publish()
+        LOGGER.info('Publishing metric done')
 
     def __repr__(self):
         return '<Loader>'
