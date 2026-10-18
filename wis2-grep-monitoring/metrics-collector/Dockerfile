@@ -28,7 +28,14 @@ RUN apk update && \
     apk upgrade --no-cache && \
     apk add --no-cache curl unzip && \
     rm -rf /var/cache/apk/* && \
-    pip3 install -r /app/requirements.txt
+    pip3 install -U pip && \
+    pip3 install -r /app/requirements.txt && \
+    apk del unzip && \
+    rm -rf /usr/local/lib/python3.*/ensurepip \
+    && rm -rf /usr/local/lib/python3.*/site-packages/pip \
+    && rm -rf /usr/local/lib/python3.*/site-packages/pip-*.dist-info \
+    && rm -rf /root/.cache/pip \
+    && rm -rf /var/cache/apk/*
 
 ENV PYTHONUNBUFFERED="true"
 
