@@ -26,7 +26,7 @@ from urllib.parse import urlparse
 
 from elasticsearch import Elasticsearch
 
-from wis2_grep.env import MESSAGE_RETENTION_HOURS
+from wis2_grep.env import MESSAGE_RETENTION_HOURS, BACKEND_CONNECTION_POOLSIZE
 from wis2_grep.backend.base import BaseBackend
 
 LOGGER = logging.getLogger(__name__)
@@ -144,7 +144,8 @@ class ElasticsearchBackend(BaseBackend):
             'hosts': [url2],
             'retry_on_timeout': True,
             'max_retries': 10,
-            'timeout': 30
+            'timeout': 30,
+            'connections_per_node': BACKEND_CONNECTION_POOLSIZE
         }
 
         if self.url_parsed.username and self.url_parsed.password:
