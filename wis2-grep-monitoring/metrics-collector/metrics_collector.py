@@ -69,9 +69,15 @@ def collect_metrics() -> None:
     :returns: `None`
     """
 
-    def _sub_connect(client, userdata, flags, rc):
+    def _sub_connect(client, userdata, flags, reason_code, properties):
+        if reason_code == 0:
+            topic = 'wis2-grep/metrics/#'
+            LOGGER.info(f'Subscribing to topic {topic}')
+            client.subscribe(topic, qos=0)
+            LOGGER.info('Subscribed')
+        else:
+            LOGGER.error(f'MQTT Connection failed: {reason_code}')
         LOGGER.info('Subscribing to topic wis2-grep/metrics/#')
-        client.subscribe('wis2-grep/metrics/#', qos=0)
 
     def _sub_message(client, userdata, msg):
         LOGGER.debug('Processing message')
@@ -98,7 +104,9 @@ def collect_metrics() -> None:
 
     try:
         LOGGER.info('Setting up MQTT client')
-        client = mqtt_client.Client(client_id)
+        client = mqtt_client.Client(
+            callback_api_version=mqtt_client.CallbackAPIVersion.VERSION2,
+            client_id=client_id)
         client.on_connect = _sub_connect
         client.on_message = _sub_message
         client.username_pw_set(url.username, url.password)

@@ -29,7 +29,9 @@ ENV PYGEOAPI_OPENAPI=/pygeoapi/local.openapi.yml
 USER root
 
 RUN apt-get update && \
-    apt-get install -y curl
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY ./app.py /pygeoapi/pygeoapi/app.py
 COPY ./wis2_grep.py /pygeoapi/pygeoapi/process/wis2_grep.py
@@ -38,6 +40,7 @@ COPY ./docker/wis2-grep-api.yml /pygeoapi/local.config.yml
 COPY ./docker/entrypoint.sh /app/docker/wis2-grep-api/entrypoint.sh
 
 RUN /venv/bin/pip3 install -r /app/docker/wis2-grep-api/requirements.txt && \
+    /venv/bin/pip3 install "fsspec>=2026.6.0" && \
     chmod +x /app/docker/wis2-grep-api/entrypoint.sh
 
 RUN chgrp -R 0 /pygeoapi && \

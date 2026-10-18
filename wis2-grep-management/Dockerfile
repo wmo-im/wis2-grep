@@ -43,6 +43,7 @@ RUN apt-get update -y && \
     # cleanup
     apt autoremove -y && \
     apt-get -q clean && \
+    rm -f /usr/bin/pebble && \
     rm -rf /var/lib/apt/lists/*
 
 RUN useradd -u 1001 -g 0 wis2-grep && \
