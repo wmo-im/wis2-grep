@@ -144,7 +144,7 @@ class ElasticsearchBackend(BaseBackend):
             'hosts': [url2],
             'retry_on_timeout': True,
             'max_retries': 10,
-            'timeout': 30,
+            'request_timeout': 30,
             'connections_per_node': BACKEND_CONNECTION_POOLSIZE
         }
 

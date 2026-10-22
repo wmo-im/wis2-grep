@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-backend = ["elasticsearch<9"]
+backend = ["elasticsearch"]
 dev = ["flake8", "twine", "wheel"]
 
 [project.scripts]
